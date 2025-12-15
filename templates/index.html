@@ -32,16 +32,15 @@
       </div>
 
       <div class="regions-section">
-  <h2>Регионы</h2>
-  <div class="grid-wrap" style="display:flex; flex-wrap:wrap;">
-    {% for r in regions %}
-    <div style="flex:0 0 33%; padding:4px; box-sizing:border-box;">
-      {{ r.name }}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-
+        <h2>Регионы</h2>
+        <div class="grid-wrap">
+          {% for r in regions %}
+          <div class="region-card">
+            {{ r.name }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
 
     </div>
   </body>
