@@ -8,22 +8,22 @@
 	</head>
 	<body>
 		<header class="site-header">
-			<div class="container nav-container">
-				<div class="site-brand">
-					<img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo">
-					<div>
-						<div class="brand-name">Ассоциация Радиовещателей</div>
-						<div class="brand-sub small">Broadcasting Association</div>
-					</div>
-				</div>
-				<nav class="page-nav">
-					<a class="btn" href="{{ url_for('index') }}">Main</a>
-					<a class="btn" href="{{ url_for('index') }}">Organisation</a>
-					<a class="btn" href="{{ url_for('smi_list') }}">SMI</a>
-					<a class="btn btn-primary" href="{{ url_for('region_list') }}">Region</a>
-					<a class="btn" href="{{ url_for('district_list') }}">District</a>
-				</nav>
-			</div>
+      <div class="nav-container">
+        <div class="site-brand">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo">
+          <div>
+            <div class="brand-name"><a class="btn" href="{{ url_for('index') }}">Ассоциация Радиовещателей</a></div>
+            <div class="brand-sub small">Калькулятор покрытия</div>
+          </div>
+        </div>
+
+        <nav class="page-nav">
+          <a class="btn" href="{{ url_for('index') }}">Организации</a>
+          <a class="btn" href="{{ url_for('smi_list') }}">СМИ</a>
+          <a class="btn" href="{{ url_for('region_list') }}">Регионы</a>
+          <a class="btn" href="{{ url_for('district_list') }}">Районы</a>
+        </nav>
+      </div>
 		</header>
 
 		<div class="container">
