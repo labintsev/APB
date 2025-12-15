@@ -80,6 +80,51 @@ def index():
     return render_template('index.html', organisations=rows, q=q, page=page, total_pages=total_pages, total_count=total_count)
 
 
+@app.route('/org_list')
+def org_list():
+    """List organisations with links."""
+    db = get_db()
+
+    # Search and pagination
+    q = (request.args.get('q') or '').strip()
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    PAGE_SIZE = 20
+    offset = (page - 1) * PAGE_SIZE
+
+    params = []
+    where = ''
+    if q:
+        likeq = f"%{q}%"
+        where = "WHERE name LIKE ? OR name_short LIKE ? OR inn LIKE ?"
+        params = [likeq, likeq, likeq]
+
+    # total count for pagination
+    count_sql = f"SELECT COUNT(*) as cnt FROM organisation {where}"
+    cur = db.execute(count_sql, params)
+    total_count = cur.fetchone()['cnt']
+    total_pages = max(1, (total_count + PAGE_SIZE - 1) // PAGE_SIZE)
+
+    # Subquery: sum distinct district populations per organisation (broadcasts reference organisation.id)
+    pop_subq = (
+        "(SELECT b.org_id AS org_db_id, SUM(DISTINCT d.population) AS total_population "
+        "FROM broadcast b JOIN district d ON b.district_id = d.id GROUP BY b.org_id) AS pop_sums"
+    )
+
+    # Select organisations with joined population sums, ordered by population descending
+    sql = (
+        f"SELECT o.id, o.org_id, o.name, o.name_short, COALESCE(pop_sums.total_population, 0) AS total_population "
+        f"FROM organisation o LEFT JOIN {pop_subq} ON pop_sums.org_db_id = o.id {where} "
+        f"ORDER BY COALESCE(pop_sums.total_population, 0) DESC, o.name LIMIT ? OFFSET ?"
+    )
+
+    rows = db.execute(sql, params + [PAGE_SIZE, offset]).fetchall()
+
+    return render_template('org-list.html', organisations=rows, q=q, page=page, total_pages=total_pages, total_count=total_count)
+
+
 @app.route('/org/<int:org_db_id>')
 def organisation_detail(org_db_id: int):
     """Show districts, SMI and population for a given organisation.
@@ -156,7 +201,7 @@ def organisation_detail(org_db_id: int):
             'is_active': bool(r['is_active'])
         })
 
-    return render_template('organisation.html', org=org, districts=districts, total_population=fmt_pop(total_population))
+    return render_template('org-broadcasts.html', org=org, districts=districts, total_population=fmt_pop(total_population))
 
 
 @app.route('/org/<int:org_db_id>/update_active', methods=['POST'])

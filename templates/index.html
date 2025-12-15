@@ -18,7 +18,7 @@
         </div>
 
         <nav class="page-nav">
-          <a class="btn" href="{{ url_for('index') }}">Организации</a>
+          <a class="btn" href="{{ url_for('org_list') }}">Организации</a>
           <a class="btn" href="{{ url_for('smi_list') }}">СМИ</a>
           <a class="btn" href="{{ url_for('region_list') }}">Регионы</a>
           <a class="btn" href="{{ url_for('district_list') }}">Районы</a>
@@ -28,57 +28,9 @@
 
     <div class="container">
       <div class="page-title">
-        <h1>Organisations</h1>
+        <h1>Главная страница</h1>
       </div>
 
-      <div class="card">
-        <form method="get" action="{{ url_for('index') }}" class="search-row" style="margin-bottom:12px;">
-          <input type="text" name="q" placeholder="Search by name, short name or INN" value="{{ q or '' }}" />
-          <button class="btn btn-primary" type="submit">Search</button>
-        </form>
-
-        {% if organisations %}
-        <p class="small">Showing {{ organisations|length }} of {{ total_count }} organisations{% if q %} matching "{{ q }}"{% endif %}.</p>
-        <div class="table-wrap">
-          <table class="app-table">
-            <thead>
-              <tr><th>Name</th><th>Short name</th><th>org_id</th><th style="text-align:right">Population (millions)</th></tr>
-            </thead>
-            <tbody>
-              {% for o in organisations %}
-              <tr>
-                <td><a href="{{ url_for('organisation_detail', org_db_id=o['id']) }}">{{ o['name'] }}</a></td>
-                <td>{{ o['name_short'] or '' }}</td>
-                <td>{{ o['org_id'] }}</td>
-                <td class="numeric">{{ '%.3f'|format(((o['total_population'] or 0))/1000000.0) }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="pagination" style="margin-top:12px">
-          {% if total_pages > 1 %}
-            {% if page > 1 %}
-              <a href="{{ url_for('index', q=q, page=page-1) }}">&laquo; Prev</a>
-            {% endif %}
-            {% for p in range(1, total_pages+1) %}
-              {% if p == page %}
-                <strong>{{ p }}</strong>
-              {% else %}
-                <a href="{{ url_for('index', q=q, page=p) }}">{{ p }}</a>
-              {% endif %}
-            {% endfor %}
-            {% if page < total_pages %}
-              <a href="{{ url_for('index', q=q, page=page+1) }}">Next &raquo;</a>
-            {% endif %}
-          {% endif %}
-        </div>
-
-        {% else %}
-          <p>No organisations found. Run the importer first or broaden your search.</p>
-        {% endif %}
-      </div>
     </div>
   </body>
 </html>
