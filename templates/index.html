@@ -1,47 +1,17 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Organisations</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="nav-container">
-        <div class="site-brand">
-          <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo">
-          <div>
-            <div class="brand-name"><a class="btn" href="{{ url_for('index') }}">Ассоциация Радиовещателей</a></div>
-            <div class="brand-sub small">Калькулятор покрытия</div>
-          </div>
-        </div>
+{% extends "base.html" %}
 
-        <nav class="page-nav">
-          <a class="btn" href="{{ url_for('org_list') }}">Организации</a>
-          <a class="btn" href="{{ url_for('smi_list') }}">СМИ</a>
-          <a class="btn" href="{{ url_for('region_list') }}">Регионы</a>
-          <a class="btn" href="{{ url_for('district_list') }}">Районы</a>
-        </nav>
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="grid-wrap">
+      {% for r in regions %}
+      <div class="region-card">
+        <a href = "">{{ r.id }} - {{ r.name }}</a>
       </div>
-    </header>
-
-    <div class="container">
-      <div class="page-title">
-        <h1>Главная страница</h1>
-      </div>
-
-      <div class="regions-section">
-        <h2>Регионы</h2>
-        <div class="grid-wrap">
-          {% for r in regions %}
-          <div class="region-card">
-            {{ r.name }}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
+      {% endfor %}
     </div>
-  </body>
-</html>
+</div>
+
+{% endblock %}

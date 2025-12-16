@@ -84,7 +84,7 @@ input[type="checkbox"]{width:16px;height:16px}
 a:focus, button:focus, input:focus{outline:2px solid rgba(0,120,212,0.12);outline-offset:2px}
 
 /* Navbar / sticky header */
-.page-nav{display:flex;gap:8px;align-items:center}
+.page-nav{display:flex;margin-left:12px;gap:8px;align-items:center}
 .page-nav .btn{padding:6px 10px;font-size:13px}
 .page-nav{position:sticky;top:0;background:linear-gradient(180deg,var(--surface),#fbfdff);z-index:40;padding:10px 0;border-bottom:1px solid #e6edf3}
 /* When sticky, keep a subtle shadow */
@@ -100,4 +100,26 @@ a:focus, button:focus, input:focus{outline:2px solid rgba(0,120,212,0.12);outlin
 .site-brand .logo{width:44px;height:44px;flex:0 0 44px;object-fit:contain}
 .brand-name{font-weight:700;font-size:17px;line-height:1}
 .brand-sub{font-size:12px;color:var(--muted);line-height:1}
-.page-nav{margin-left:12px}
+
+/* Full-page layout */
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.content {
+    flex: 1;
+}
+
+/* Site footer */
+.site-footer {
+    margin-top: auto;
+    padding: 16px 0;
+    text-align: center;
+    background: var(--surface);
+    color: var(--muted);
+    border-top: 1px solid #e6edf3;
+    font-size: 13px;
+}
