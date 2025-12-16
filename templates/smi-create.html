@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="page-title">
+        <h1>Organisation Management</h1>
+    </div>
+    <div class="card">
+        <h2>Add New Organisation</h2>
+        <form method="post" action="{{ url_for('smi_create') }}">
+            <div class="form-group">
+                <label for="name">Название станции:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="rating">Рейтинг:</label>
+                <input type="number" id="rating" name="rating" default="1.0">
+            </div>
+            <div class="form-group">
+                <label for="male">Мужская аудитория:</label>
+                <input type="number" id="male" name="male" default="0.5">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Добавить СМИ</button>
+        </form>
+    </div>
+
+    {% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Обновить СМИ{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="page-title">
+    <h1>Обновление СМИ</h1>
+  </div>
+
+  <div class="card">
+    <form method="post" action="{{ url_for('smi_update', smi_id=smi.id) }}">
+      <div class="form-group">
+        <label for="name">Название станции:</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="rating">Рейтинг:</label>
+        <input type="number" id="rating" name="rating" default="1.0">
+      </div>
+      <div class="form-group">
+        <label for="male">Мужская аудитория:</label>
+        <input type="number" id="male" name="male" default="0.5">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Обновить СМИ</button>
+
+      <a href="{{ url_for('smi_list') }}" class="btn btn-secondary">Отмена</a>
+      
+    </form>
+  </div>
+  {% endblock %}

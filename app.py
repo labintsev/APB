@@ -89,7 +89,58 @@ def org_delete(org_id):
 def smi_list():
     # Fetch all SMI from the database
     smis = Smi.query.all()
-    return render_template('smi.html', smis=smis)
+    return render_template('smi-list.html', smis=smis)
+
+
+@app.route('/smi/<int:smi_id>')
+def smi_detail(smi_id):
+    # Show details for a specific SMIs
+    smi = Smi.query.get_or_404(smi_id)
+    return render_template('smi-read.html', smi=smi)
+
+
+@app.route('/smi/create', methods=['GET', 'POST'])
+def smi_create():
+    # Handle both GET (show form) and POST (submit form) requests
+    if request.method == 'POST':
+        # Create a new SMIs instance and add it to the database
+        new_smi = Smi(
+            name=request.form['name'], 
+            rating=request.form['rating'],
+            male=request.form['male']
+        )
+        db.session.add(new_smi)
+        db.session.commit()
+        return redirect(url_for('smi_list'))
+    else:
+        # Show the form for creating a new SMIs
+        return render_template('smi-create.html')
+
+
+@app.route('/smi/<int:smi_id>/update', methods=['GET', 'POST'])
+def smi_update(smi_id):
+    # Handle both GET (show form) and POST (submit form) requests
+    smis = Smi.query.get_or_404(smi_id)
+    
+    if request.method == 'POST':
+        # Update the SMIs
+        smis.name = request.form['name']
+        smis.rating = request.form['rating']
+        smis.male = request.form['male']
+        db.session.commit()
+        return redirect(url_for('smi_list'))
+    else:
+        # Show the form for updating the SMIs
+        return render_template('smi-update.html', smi=smis)
+
+
+@app.route('/smi/<int:smi_id>/delete', methods=['POST'])
+def smi_delete(smi_id):
+    # Delete an SMIs by ID
+    smi = Smi.query.get_or_404(smi_id)
+    db.session.delete(smi)
+    db.session.commit()
+    return redirect(url_for('smi_list'))
 
 
 @app.route('/region_list')

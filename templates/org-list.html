@@ -5,9 +5,9 @@
 {% block content %}
 
 <div class="container">
-  <div class="card" style="margin-top: 20px;">
-    <h2>Existing Organisations</h2>
-    <a href="{{ url_for('org_create') }}" class="btn btn-primary" style="margin-bottom: 15px;">Create New Organisation</a>
+  <div class="card">
+    <h2>Список организаций</h2>
+    <a href="{{ url_for('org_create') }}" class="btn btn-primary" >Добавить организацию</a>
     <div class="table-wrap">
       <table class="app-table">
         <thead>
@@ -18,8 +18,8 @@
           <tr>
             <td>{{ org.name }}</td>
             <td>
-              <a href="{{ url_for('org_update', org_id=org.id) }}" class="btn btn-secondary">Edit</a>
-              <a href="{{ url_for('org_delete', org_id=org.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+              <a href="{{ url_for('org_update', org_id=org.id) }}" class="btn btn-secondary">Править</a>
+              <a href="{{ url_for('org_delete', org_id=org.id) }}" class="btn btn-danger" onclick="return confirm('Вы уверенны?')">Удалить</a>
             </td>
           </tr>
           {% endfor %}
