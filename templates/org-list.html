@@ -19,7 +19,7 @@
             <td>{{ org.name }}</td>
             <td>
               <a href="{{ url_for('org_update', org_id=org.id) }}" class="btn btn-secondary">Править</a>
-              <a href="{{ url_for('org_delete', org_id=org.id) }}" class="btn btn-danger" onclick="return confirm('Вы уверенны?')">Удалить</a>
+             
             </td>
           </tr>
           {% endfor %}

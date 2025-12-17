@@ -64,7 +64,7 @@
 *   **FR3.3:** Страницы CRUD:
     ```
     GET     /org_list                          # Список всех организаций
-    GET     /organisation/<int:org_id>             # Детальная информация об организации
+    GET     /organisation/<int:org_id>         # Детальная информация об организации
     GET     /organisation/create               # Форма создания новой организации
     POST    /organisation/create               # Обработка создания организации
     GET     /organisation/<int:id>/update      # Форма редактирования организации
@@ -72,22 +72,23 @@
     POST    /organisation/<int:id>/delete      # Удаление организации
 
     GET     /smi_list                          # Список всех СМИ
-    GET     /smi/<int:smi_id>                      # Детальная информация о СМИ
+    GET     /smi/<int:smi_id>                  # Детальная информация о СМИ
     GET     /smi/create                        # Форма создания нового СМИ
     POST    /smi/create                        # Обработка создания СМИ
     GET     /smi/<int:id>/edit                 # Форма редактирования СМИ
     POST    /smi/<int:id>/update               # Обработка обновления СМИ
     POST    /smi/<int:id>/delete               # Удаление СМИ
-    GET     /smi/<int:id>/broadcasts           # Список вещаний данного СМИ
+    GET     /smi/<int:id>/broadcasts           # Список районов вещания данного СМИ
 
     GET     /district                          # Список всех районов
-    GET     /district/<int:dis_id>                 # Детальная информация о районе
+    GET     /district/<int:dis_id>             # Детальная информация о районе
     GET     /district/create                   # Форма создания нового района
     POST    /district/create                   # Обработка создания района
     GET     /district/<int:id>/edit            # Форма редактирования района
     POST    /district/<int:id>/update          # Обработка обновления района
     POST    /district/<int:id>/delete          # Удаление района
-    GET     /district/<int:id>/broadcasts      # Список вещаний в районе
+
+    GET     /district/<int:id>/broadcasts      # Список вещаний СМИ в районе
     GET     /api/districts/by-region/<int:region_id>  # API: Районы по региону (JSON)
 
 

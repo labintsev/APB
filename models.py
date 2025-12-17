@@ -35,7 +35,7 @@ class Region(db.Model):
     districts = db.relationship('District', backref='region', lazy=True)
     
     def __repr__(self):
-        return f'<Region {self.name}>'
+        return self.name
 
 
 class District(db.Model):
