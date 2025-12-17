@@ -5,11 +5,8 @@
 {% block content %}
 
 <div class="container">
-  <div class="page-title">
-    <h1>Обновить организацию</h1>
-  </div>
-
   <div class="card">
+    <h2>Данные организации</h2>
     <form method="post" action="{{ url_for('org_update', org_id=organisation.id) }}">
       <div class="form-group">
         <label for="name">Name:</label>
@@ -42,7 +39,10 @@
       </div>
       <button type="submit" class="btn btn-primary">Update Organisation</button>
       <a href="{{ url_for('org_update', org_id=organisation.id) }}" class="btn btn-secondary">Cancel</a>
-       <a href="{{ url_for('org_delete', org_id=org.id) }}" class="btn btn-danger" onclick="return confirm('Вы уверенны?')">Удалить</a>
+      <a href="{{ url_for('org_delete', org_id=organisation.id) }}" class="btn btn-danger"
+        onclick="return confirm('Вы уверенны?')">Удалить</a>
     </form>
   </div>
-  {% endblock %}
+</div>
+
+{% endblock %}

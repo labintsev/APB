@@ -76,6 +76,70 @@ def org_update(org_id):
         return render_template('org-update.html', organisation=org)
 
 
+# In app.py - Add the route to display broadcasts for an organization
+@app.route('/organisation/<int:org_id>/broadcasts')
+def org_broadcasts(org_id):
+    org = Organisation.query.get_or_404(org_id)
+    smis = Smi.query.all()
+    districts = District.query.all()
+    return render_template('org-broadcast.html', organisation=org, smis=smis, districts=districts)
+
+
+# In app.py - Update the calculate_cost function to be more robust
+def calculate_cost(broadcast):
+    try:
+        smi = Smi.query.get_or_404(broadcast.smi_id)
+        district = District.query.get_or_404(broadcast.district_id)
+        region = Region.query.get_or_404(district.region_id)
+        cost = cost_per_person * smi.rating * district.population * region.rating
+        return cost
+    except:
+        return 0  # Return 0 if calculation fails
+    
+
+# Fix the broadcast_create route to handle all fields properly
+@app.route('/organisation/<int:org_id>/broadcast_create', methods=['POST'])
+def broadcast_create(org_id):
+    # Get the organization
+    org = Organisation.query.get_or_404(org_id)
+    
+    # Get form data
+    smi_id = request.form['smi_id']
+    district_id = request.form['district_id']
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    
+    # Create new broadcast
+    new_broadcast = Broadcast(
+        org_id=org.id,
+        smi_id=smi_id,
+        district_id=district_id
+    )
+    
+    # Add to database
+    db.session.add(new_broadcast)
+    db.session.commit()
+    
+    # Calculate cost 
+    cost = calculate_cost(new_broadcast)
+    
+    # Update the cost in the broadcast
+    new_broadcast.cost = cost
+    db.session.commit()
+    
+    # Redirect back to organization broadcasts page
+    return redirect(url_for('org_broadcasts', org_id=org.id))
+
+
+@app.route('/broadcast/<int:bro_id>/delete')
+def broadcast_delete(bro_id):
+    # Delete a broadcast by ID
+    bro = Broadcast.query.get_or_404(bro_id)
+    db.session.delete(bro)
+    db.session.commit()
+    return redirect(url_for('org_broadcasts', org_id=bro.org_id))
+
+
 @app.route('/organisation/<int:org_id>/delete', methods=['POST'])
 def org_delete(org_id):
     # Delete an organization by ID

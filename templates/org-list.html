@@ -11,22 +11,23 @@
     <div class="table-wrap">
       <table class="app-table">
         <thead>
-          <tr><th>Name</th><th>Short Name</th><th>INN</th><th>Actions</th></tr>
+          <tr>
+            <th>Название</th><th>Количество СМИ</th><th>Количество районов</th><th>Население всего</th><th>Оценка стоимости рекламы</th><th>Действие</th></tr>
         </thead>
         <tbody>
           {% for org in organisations %}
           <tr>
-            <td>{{ org.name }}</td>
-            <td>
-              <a href="{{ url_for('org_update', org_id=org.id) }}" class="btn btn-secondary">Править</a>
-             
-            </td>
+            <td><a href=" {{ url_for('org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a> </td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td><a href=" {{ url_for('org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a> </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
-
 
 {% endblock %}
