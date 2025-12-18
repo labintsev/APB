@@ -365,83 +365,22 @@ def api_regions():
     return jsonify(regions_data)
 
 
-@app.route('/api/region/<int:id>/smi')
-def api_region_smi(id):
-    """API для получения JSON СМИ для конкретного региона"""
-    region = Region.query.get_or_404(id)
-    smi_list = []
-    
-    # Get all broadcasts for this region
-    broadcasts = Broadcast.query.filter_by(district_id=id).all()
-    
-    # Get unique SMIs from these broadcasts
-    smi_ids = set(broadcast.smi_id for broadcast in broadcasts if broadcast.smi_id)
-    
-    for smi_id in smi_ids:
-        smi = Smi.query.get(smi_id)
-        if smi:
-            smi_list.append({
-                'id': smi.id,
-                'name': smi.name,
-                'rating': smi.rating
-            })
-    
-    return jsonify(smi_list)
+@app.route('/api/region/<int:reg_id>/broadcasts')
+def api_region_smi(reg_id):
+    """API для получения JSON вещаний для конкретного региона"""
+    output = {}
+    region_broadcasts = []
+    # Get all broadcasts for this region Todo optimize query
+    districts = District.query.filter_by(region_id=reg_id).all()
+    for district in districts:
+        broadcasts = Broadcast.query.filter_by(district_id=district.id).all()
+        region_broadcasts.extend(broadcasts)
 
+    # Calculate total cost of broadcasts
+    region_cost = sum([calculate_cost(broadcast) for broadcast in region_broadcasts])
+    output['region_cost'] = region_cost  
 
-@app.route('/api/organisations')
-def api_organisations():
-    """API для получения JSON всех организаций"""
-    organisations = Organisation.query.all()
-    orgs_data = []
-    
-    for org in organisations:
-        orgs_data.append({
-            'id': org.id,
-            'name': org.name,
-            'name_short': org.name_short,
-            'inn': org.inn,
-            'ogrn': org.ogrn,
-            'address': org.address,
-            'phone': org.phone,
-            'email': org.email,
-            'arv_member': org.arv_member,
-            'population_sum': org.population_sum
-        })
-    
-    return jsonify(orgs_data)
-
-
-@app.route('/api/calculation/<int:org_id>')
-def api_calculation(org_id):
-    """API для получения JSON расчета стоимости для организации"""
-    org = Organisation.query.get_or_404(org_id)
-    
-    # Calculate total population covered by this organization
-    total_population = 0
-    districts_covered = set()
-    
-    # Get all broadcasts for this organization
-    broadcasts = Broadcast.query.filter_by(org_id=org.id).all()
-    
-    # Calculate total population for districts in these broadcasts
-    for broadcast in broadcasts:
-        if broadcast.district_id not in districts_covered:
-            district = District.query.get(broadcast.district_id)
-            if district and district.population:
-                total_population += district.population
-                districts_covered.add(broadcast.district_id)
-    
-    # Calculate cost - simplified calculation
-
-    total_cost = total_population * cost_per_person
-    
-    return jsonify({
-        'org_id': org.id,
-        'org_name': org.name,
-        'total_population': total_population,
-        'total_cost': total_cost
-    })
+    return jsonify(output)
 
 
 if __name__ == '__main__':

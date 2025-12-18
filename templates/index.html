@@ -5,13 +5,61 @@
 {% block content %}
 
 <div class="container">
-    <div class="grid-wrap">
-      {% for r in regions %}
-      <div class="region-card">
-        <a href = "">{{ r.id }} - {{ r.name }}</a>
+  <div class="main-content">
+    <div class="regions-column">
+      <h2 class="page-title">Регионы</h2>
+      <div class="regions-list">
+        {% for r in regions %}
+        <div id="{{r.id}}" class="region-item">
+          {{ r.id }} - {{ r.name }}
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
+
+    <div class="broadcasts-column">
+      <h2 class="page-title">Стоимость вещаний</h2>
+      <div class="broadcasts-info">
+        <div class="loading" id="loading">Выберите регион</div>
+        <h4 class="broadcasts-header" id="broadcastHeader" style="display: none;"></h4>
+        <div class="broadcasts-data" id="broadcastsData" style="display: none;">
+          <div class="broadcasts-summary">
+            <p class="total-cost" id="totalCost">0 ₽</p>
+          </div>
+          <div class="broadcasts-details">
+            <h3>Детали по районам</h3>
+            <div id="regionDetails"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  document.addEventListener('click', function (e) {
+    if (!e.target.classList.contains('region-item')) { return }
+    console.log(e.target.id);
+
+    const url = `/api/region/${e.target.id}/broadcasts`;
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('broadcastHeader').style.display = 'block';
+        document.getElementById('broadcastsData').style.display = 'block';
+
+        // Update total cost
+        document.getElementById('broadcastHeader').textContent = e.target.textContent;
+        document.getElementById('totalCost').textContent = data.region_cost.toLocaleString() + ' т.р.';
+
+      })
+      .catch(error => {
+        console.error('Error loading broadcast data:', error);
+        document.getElementById('loading').textContent = 'Ошибка загрузки данных';
+      });
+  }
+  );
+</script>
 
 {% endblock %}
