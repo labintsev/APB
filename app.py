@@ -9,7 +9,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 # Базовый коэфициент для расчета 5 копеек per person
-cost_per_person = 0.005  
+cost_per_person = 5  
 
 
 def calculate_cost(broadcast):

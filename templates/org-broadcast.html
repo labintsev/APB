@@ -62,9 +62,9 @@
             <tr>
               <td>{{ broadcast.smi.name }}</td>
               <td>{{ broadcast.district.name }}</td>
-              <td>{{ broadcast.frequency or '-' }}</td>
-              <td>{{ broadcast.power or '-' }}</td>
-              <td> {{ calculate_cost(broadcast ) }}</td>
+              <td>{{ broadcast.frequency or '-' }} МГц</td>
+              <td>{{ broadcast.power or '-' }} кВт</td>
+              <td> {{ calculate_cost(broadcast ) }} т.р.</td>
               <td>
                 <a href="{{ url_for('broadcast_update', bro_id=broadcast.id) }}"
                   class="btn btn-sm btn-warning">Изменить</a>

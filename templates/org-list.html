@@ -28,8 +28,8 @@
             </td>
             <td>{{ org.total_smi }}</td>
             <td>{{ org.total_districts }}</td>
-            <td>{{ org.total_population }}</td>
-            <td>{{ "%.2f"|format(org.total_cost) }} руб.</td>
+            <td>{{ org.total_population }} т. чел.</td>
+            <td>{{ org.total_cost }} т.р.</td>
             <td>
               <a href=" {{ url_for('org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a>
             </td>
