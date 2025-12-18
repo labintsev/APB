@@ -1,3 +1,4 @@
+<!-- templates/org-list.html -->
 {% extends "base.html" %}
 
 {% block title %}Организации{% endblock %}
@@ -7,27 +8,37 @@
 <div class="container">
   <div class="card">
     <h2>Список организаций</h2>
-    <a href="{{ url_for('org_create') }}" class="btn btn-primary" >Добавить организацию</a>
+    <a href="{{ url_for('org_create') }}" class="btn btn-primary">Добавить организацию</a>
     <div class="table-wrap">
       <table class="app-table">
         <thead>
           <tr>
-            <th>Название</th><th>Количество СМИ</th><th>Количество районов</th><th>Население всего</th><th>Оценка стоимости рекламы</th><th>Действие</th></tr>
+            <th>Название</th>
+            <th>Количество СМИ</th>
+            <th>Количество районов</th>
+            <th>Население всего</th>
+            <th>Оценка стоимости рекламы</th>
+            <th>Реквизиты</th>
+          </tr>
         </thead>
         <tbody>
           {% for org in organisations %}
           <tr>
-            <td><a href=" {{ url_for('org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a> </td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td><a href=" {{ url_for('org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a> </td>
+            <td><a href=" {{ url_for('org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a>
+            </td>
+            <td>{{ org.total_smi }}</td>
+            <td>{{ org.total_districts }}</td>
+            <td>{{ org.total_population }}</td>
+            <td>{{ "%.2f"|format(org.total_cost) }} руб.</td>
+            <td>
+              <a href=" {{ url_for('org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+</div>
 
 {% endblock %}

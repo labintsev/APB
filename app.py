@@ -12,16 +12,71 @@ db.init_app(app)
 cost_per_person = 0.005  
 
 
+def calculate_cost(broadcast):
+    try:
+        # Get the broadcast details
+        smi = Smi.query.get(broadcast.smi_id)
+        district = District.query.get(broadcast.district_id)
+        
+        if not smi or not district or not district.population:
+            return 0
+            
+        region = Region.query.get(district.region_id)
+        if not region:
+            return 0
+            
+        cost = cost_per_person * smi.rating * district.population * region.rating
+        return cost
+    except Exception as e:
+        print(f"Error calculating cost: {e}")
+        return 0  # Return 0 if calculation fails
+    
+
 @app.route('/')
 def index():
     """Главная страница: отображает список регионов с возможностью раскрытия СМИ"""
     regions = Region.query.all()
     return render_template('index.html', regions=regions)
 
+
 @app.route('/org_list')
 def org_list():
     # Fetch all organizations from the database
     organizations = Organisation.query.all()
+    
+    # For every organisation read total smi, total districts, total population and total cost
+    for org in organizations:
+        # Calculate total SMI for this organization
+        org.total_smi = Smi.query.join(Broadcast).filter(Broadcast.org_id == org.id).distinct().count()
+        
+        # Calculate total districts for this organization
+        org.total_districts = District.query.join(Broadcast).filter(Broadcast.org_id == org.id).distinct().count()
+        
+        # Calculate total population covered by this organization
+        total_population = 0
+        districts_covered = set()
+        
+        # Get all broadcasts for this organization
+        broadcasts = Broadcast.query.filter_by(org_id=org.id).all()
+        
+        # Calculate total population for districts in these broadcasts
+        for broadcast in broadcasts:
+            if broadcast.district_id not in districts_covered:
+                district = District.query.get(broadcast.district_id)
+                if district and district.population:
+                    total_population += district.population
+                    districts_covered.add(broadcast.district_id)
+        
+        org.total_population = total_population
+        
+        # Calculate total cost for this organization
+        total_cost = 0
+        for broadcast in broadcasts:
+            cost = calculate_cost(broadcast)
+            total_cost += cost
+        
+        org.total_cost = total_cost
+        
     return render_template('org-list.html', organisations=organizations)
 
 
@@ -84,18 +139,6 @@ def org_broadcasts(org_id):
     districts = District.query.all()
     return render_template('org-broadcast.html', organisation=org, smis=smis, districts=districts)
 
-
-# In app.py - Update the calculate_cost function to be more robust
-def calculate_cost(broadcast):
-    try:
-        smi = Smi.query.get_or_404(broadcast.smi_id)
-        district = District.query.get_or_404(broadcast.district_id)
-        region = Region.query.get_or_404(district.region_id)
-        cost = cost_per_person * smi.rating * district.population * region.rating
-        return cost
-    except:
-        return 0  # Return 0 if calculation fails
-    
 
 # Fix the broadcast_create route to handle all fields properly
 @app.route('/organisation/<int:org_id>/broadcast_create', methods=['POST'])
