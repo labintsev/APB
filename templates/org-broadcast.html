@@ -1,42 +1,52 @@
-<!-- templates/org-broadcast.html -->
+<!-- templates/org-broadcast.html - Update the table to show frequency and power -->
 {% extends "base.html" %}
 
-{% block title %}Сетка вещания{% endblock %}
+{% block title %}Трансляции{% endblock %}
 
 {% block content %}
 <div class="container">
+
   <div class="card">
-    <h2>{{organisation.name}}</h2>
-    
-    <div class="card">
-      <h3>Добавить вещание</h3>
-      <form method="post" action="{{ url_for('broadcast_create', org_id=organisation.id) }}">
-        <div class="form-group">
-          <label for="smi_id">СМИ:</label>
-          <select id="smi_id" name="smi_id" required>
-            <option value="">Выберите СМИ</option>
-            {% for smi in smis %}
-            <option value="{{ smi.id }}">{{ smi.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="district_id">Район:</label>
-          <select id="district_id" name="district_id" required>
-            <option value="">Выберите район</option>
-            {% for district in districts %}
-            <option value="{{ district.id }}">{{ district.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <button type="submit" class="btn btn-success">Добавить вещание</button>
-      </form>
-    </div>
-    
-    <div class="card">
-      <h3>Список вещаний</h3>
-      <div class="table-wrap">
-        <table class="app-table">
+    <h2>Трансляции для {{ organisation.name }}</h2>
+
+    <h4>Создать новую трансляцию</h4>
+    <form method="POST" action="{{ url_for('broadcast_create', org_id=organisation.id) }}">
+
+      <div class="form-group">
+        <label for="smi_id">СМИ:</label>
+        <select class="form-control" id="smi_id" name="smi_id" required>
+          {% for smi in smis %}
+          <option value="{{ smi.id }}">{{ smi.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="district_id">Район:</label>
+        <select class="form-control" id="district_id" name="district_id" required>
+          {% for district in districts %}
+          <option value="{{ district.id }}">{{ district.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="frequency">Частота:</label>
+        <input type="text" class="form-control" id="frequency" name="frequency">
+      </div>
+
+      <div class="form-group">
+        <label for="power">Мощность:</label>
+        <input type="number" class="form-control" id="power" name="power" step="0.01">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Создать трансляцию</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="app-table">
           <thead>
             <tr>
               <th>СМИ</th>
@@ -48,32 +58,26 @@
             </tr>
           </thead>
           <tbody>
-            {% if organisation.broadcasts %}
-              {% for broadcast in organisation.broadcasts %}
-              <tr>
-                <td>{{ broadcast.smi.name }}</td>
-                <td>{{ broadcast.district.name }}</td>
-                <td>{{ broadcast.start_date or 'Не указано' }}</td>
-                <td>{{ broadcast.end_date or 'Не указано' }}</td>
-                <td>{{ broadcast.cost or 'Не рассчитана' }}</td>
-                <td>
-                  <a href="{{ url_for('broadcast_delete', bro_id=broadcast.id) }}" 
-                     class="btn btn-danger btn-sm" 
-                     onclick="return confirm('Вы уверены?')">Удалить</a>
-                </td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="6" class="text-center">Нет вещаний для этой организации</td>
-              </tr>
-            {% endif %}
+            {% for broadcast in organisation.broadcasts %}
+            <tr>
+              <td>{{ broadcast.smi.name }}</td>
+              <td>{{ broadcast.district.name }}</td>
+              <td>{{ broadcast.frequency or '-' }}</td>
+              <td>{{ broadcast.power or '-' }}</td>
+              <td> {{ calculate_cost(broadcast ) }}</td>
+              <td>
+                <a href="{{ url_for('broadcast_update', bro_id=broadcast.id) }}"
+                  class="btn btn-sm btn-warning">Изменить</a>
+                <a href="{{ url_for('broadcast_delete', bro_id=broadcast.id) }}" class="btn btn-sm btn-danger"
+                  onclick="return confirm('Вы уверены, что хотите удалить эту трансляцию?')">Удалить</a>
+              </td>
+            </tr>
+            {% endfor %}
           </tbody>
         </table>
-      </div>
     </div>
-    
-    <a href="{{ url_for('org_list') }}" class="btn btn-secondary">Назад к списку организаций</a>
   </div>
+
+
 </div>
 {% endblock %}

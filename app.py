@@ -32,6 +32,11 @@ def calculate_cost(broadcast):
         return 0  # Return 0 if calculation fails
     
 
+@app.context_processor
+def inject_functions():
+    return dict(calculate_cost=calculate_cost) 
+
+
 @app.route('/')
 def index():
     """Главная страница: отображает список регионов с возможностью раскрытия СМИ"""
@@ -140,7 +145,6 @@ def org_broadcasts(org_id):
     return render_template('org-broadcast.html', organisation=org, smis=smis, districts=districts)
 
 
-# Fix the broadcast_create route to handle all fields properly
 @app.route('/organisation/<int:org_id>/broadcast_create', methods=['POST'])
 def broadcast_create(org_id):
     # Get the organization
@@ -149,29 +153,48 @@ def broadcast_create(org_id):
     # Get form data
     smi_id = request.form['smi_id']
     district_id = request.form['district_id']
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
+    frequency = request.form.get('frequency')
+    power = request.form.get('power')
     
     # Create new broadcast
     new_broadcast = Broadcast(
         org_id=org.id,
         smi_id=smi_id,
-        district_id=district_id
+        district_id=district_id,
+        frequency=frequency,
+        power=power
     )
     
     # Add to database
     db.session.add(new_broadcast)
     db.session.commit()
-    
-    # Calculate cost 
-    cost = calculate_cost(new_broadcast)
-    
-    # Update the cost in the broadcast
-    new_broadcast.cost = cost
-    db.session.commit()
-    
     # Redirect back to organization broadcasts page
     return redirect(url_for('org_broadcasts', org_id=org.id))
+
+
+@app.route('/broadcast/<int:bro_id>/update', methods=['POST', 'GET'])
+def broadcast_update(bro_id):
+    # Update a broadcast by ID
+    broadcast = Broadcast.query.get_or_404(bro_id)
+    
+    if request.method == 'POST':
+        # Update the broadcast
+        broadcast.smi_id = request.form['smi_id']
+        broadcast.district_id = request.form['district_id']
+        broadcast.frequency = request.form['frequency']
+        broadcast.power = request.form['power']
+        db.session.commit()
+        return redirect(url_for('org_broadcasts', org_id=broadcast.org_id))
+    else:
+        # Show the form for updating the broadcast
+        org = Organisation.query.get_or_404(broadcast.org_id)
+        smis = Smi.query.all()
+        districts = District.query.all()
+        return render_template('broadcast-update.html', 
+                             broadcast=broadcast, 
+                             organisation=org, 
+                             smis=smis, 
+                             districts=districts)
 
 
 @app.route('/broadcast/<int:bro_id>/delete')
@@ -419,8 +442,6 @@ def api_calculation(org_id):
         'total_population': total_population,
         'total_cost': total_cost
     })
-
-
 
 
 if __name__ == '__main__':
