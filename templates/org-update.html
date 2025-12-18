@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Обновить организацию{% endblock %}
+{% block title %}Обновить реквизиты{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="card">
-    <h2>Данные организации</h2>
+    <h2>Реквезиты организации</h2>
     <form method="post" action="{{ url_for('org_update', org_id=organisation.id) }}">
       <div class="form-group">
-        <label for="name">Name:</label>
+        <label for="name">Название:</label>
         <input type="text" id="name" name="name" value="{{ organisation.name }}" required>
       </div>
       <div class="form-group">
-        <label for="inn">INN:</label>
+        <label for="inn">ИНН:</label>
         <input type="text" id="inn" name="inn" value="{{ organisation.inn or '' }}">
       </div>
       <div class="form-group">
-        <label for="ogrn">OGRN:</label>
+        <label for="ogrn">ОГРН:</label>
         <input type="text" id="ogrn" name="ogrn" value="{{ organisation.ogrn or '' }}">
       </div>
       <div class="form-group">
-        <label for="address">Address:</label>
+        <label for="address">Адрес:</label>
         <input type="text" id="address" name="address" value="{{ organisation.address or '' }}">
       </div>
       <div class="form-group">
-        <label for="phone">Phone:</label>
+        <label for="phone">Телефон:</label>
         <input type="text" id="phone" name="phone" value="{{ organisation.phone or '' }}">
       </div>
       <div class="form-group">
@@ -33,12 +33,12 @@
         <input type="email" id="email" name="email" value="{{ organisation.email or '' }}">
       </div>
       <div class="form-group">
-        <label for="arv_member">ARV Member:</label>
+        <label for="arv_member">Член ассоциации:</label>
         <input type="checkbox" id="arv_member" name="arv_member" value="1" {% if organisation.arv_member %}checked{%
           endif %}>
       </div>
-      <button type="submit" class="btn btn-primary">Update Organisation</button>
-      <a href="{{ url_for('org_update', org_id=organisation.id) }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Обновить</button>
+      <a href="{{ url_for('org_list') }}" class="btn btn-secondary">Отмена</a>
       <a href="{{ url_for('org_delete', org_id=organisation.id) }}" class="btn btn-danger"
         onclick="return confirm('Вы уверенны?')">Удалить</a>
     </form>

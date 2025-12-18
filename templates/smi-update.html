@@ -13,15 +13,15 @@
     <form method="post" action="{{ url_for('smi_update', smi_id=smi.id) }}">
       <div class="form-group">
         <label for="name">Название станции:</label>
-        <input type="text" id="name" name="name" required>
+        <input type="text" id="name" name="name" value="{{ smi.name }}" required>
       </div>
       <div class="form-group">
         <label for="rating">Рейтинг:</label>
-        <input type="number" id="rating" name="rating" default="1.0">
+        <input type="number" id="rating" name="rating" value="{{ smi.rating }}" step="0.1" default="1.0">
       </div>
       <div class="form-group">
         <label for="male">Мужская аудитория:</label>
-        <input type="number" id="male" name="male" default="0.5">
+        <input type="number" id="male" name="male" value="{{ smi.male }}" step="0.1" default="0.5">
       </div>
 
       <button type="submit" class="btn btn-primary">Обновить СМИ</button>
