@@ -155,12 +155,13 @@ def broadcast_create(org_id):
     district_id = request.form['district_id']
     frequency = request.form.get('frequency')
     power = request.form.get('power')
-    
+    region = District.query.get_or_404(district_id).region
     # Create new broadcast
     new_broadcast = Broadcast(
         org_id=org.id,
         smi_id=smi_id,
         district_id=district_id,
+        region_id = region.id,
         frequency=frequency,
         power=power
     )
@@ -369,12 +370,10 @@ def api_regions():
 def api_region_smi(reg_id):
     """API для получения JSON вещаний для конкретного региона"""
     output = {}
-    region_broadcasts = []
-    # Get all broadcasts for this region Todo optimize query
-    districts = District.query.filter_by(region_id=reg_id).all()
-    for district in districts:
-        broadcasts = Broadcast.query.filter_by(district_id=district.id).all()
-        region_broadcasts.extend(broadcasts)
+    if reg_id == 0:
+        region_broadcasts = Broadcast.query.all()
+    else:
+        region_broadcasts = Broadcast.query.filter_by(region_id=reg_id).all()
 
     # Calculate total cost of broadcasts
     region_cost = sum([calculate_cost(broadcast) for broadcast in region_broadcasts])
@@ -386,4 +385,4 @@ def api_region_smi(reg_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
