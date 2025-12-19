@@ -3,3 +3,4 @@ pandas
 lxml
 Flask
 flask_sqlalchemy
+gunicorn
