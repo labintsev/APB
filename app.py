@@ -44,6 +44,13 @@ def index():
     return render_template('index.html', regions=regions)
 
 
+@app.route('/regions')
+def region_list():
+    """Главная страница: отображает список регионов с возможностью раскрытия СМИ"""
+    regions = Region.query.all()
+    return render_template('region-list.html', regions=regions)
+
+
 @app.route('/org_list')
 def org_list():
     # Fetch all organizations from the database
@@ -274,13 +281,6 @@ def smi_delete(smi_id):
     return redirect(url_for('smi_list'))
 
 
-@app.route('/region_list')
-def region_list():
-    # Fetch all regions from the database
-    regions = Region.query.all()
-    return render_template('region.html', regions=regions)
-
-
 @app.route('/district_list')
 def district_list():
     # Fetch all districts from the database
@@ -344,26 +344,15 @@ def district_delete(dis_id):
     return redirect(url_for('district_list'))
 
 
-@app.route('/api/regions')
-def api_regions():
-    """API для получения JSON всех регионов с суммарным населением"""
-    regions = Region.query.all()
-    regions_data = []
-    
-    for region in regions:
-        # Calculate total population for the region
-        total_population = 0
-        for district in region.districts:
-            total_population += district.population if district.population else 0
-        
-        regions_data.append({
-            'id': region.id,
-            'name': region.name,
-            'population_sum': total_population,
-            'rating': region.rating
-        })
-    
-    return jsonify(regions_data)
+@app.route('/api/organisations')
+def api_organisations():
+    """API для получения JSON всех организаций со стоимостью вещаний"""
+    organisations_data = {}
+    organisations = Organisation.query.all()
+    for organisation in organisations:
+        organisations_data[organisation.name] = sum(
+            [calculate_cost(broadcast) for broadcast in organisation.broadcasts])
+    return jsonify(organisations_data)
 
 
 @app.route('/api/region/<int:reg_id>/broadcasts')

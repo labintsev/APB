@@ -5,61 +5,81 @@
 {% block content %}
 
 <div class="container">
-  <div class="main-content">
-    <div class="regions-column">
-      <h2 class="page-title">Регионы</h2>
-      <div class="regions-list">
-        {% for r in regions %}
-        <div id="{{r.id}}" class="region-item">
-          {{ r.id }} - {{ r.name }}
-        </div>
-        {% endfor %}
+  <div class="card">
+    <h1>Калькулятор</h1>
+    <form id="budgetForm">
+      <div class="form-group">
+        <label for="budget">Рекламный бюджет (т.р.):</label>
+        <input type="number" id="budget" name="budget" step="0.01" required>
       </div>
-    </div>
-
-    <div class="broadcasts-column">
-      <h2 class="page-title">Стоимость вещаний</h2>
-      <div class="broadcasts-info">
-        <div class="loading" id="loading">Выберите регион</div>
-        <h4 class="broadcasts-header" id="broadcastHeader" style="display: none;"></h4>
-        <div class="broadcasts-data" id="broadcastsData" style="display: none;">
-          <div class="broadcasts-summary">
-            <p class="total-cost" id="totalCost">0 ₽</p>
-          </div>
-          <div class="broadcasts-details">
-            <h3>Детали по районам</h3>
-            <div id="regionDetails"></div>
-          </div>
-        </div>
-      </div>
+      <button type="submit" class="btn btn-primary">Рассчитать</button>
+    </form>
+    
+    <div id="results" class="results" style="display: none;">
+      <h2>Распределение бюджета</h2>
+      <table class="app-table">
+        <thead>
+          <tr>
+            <th>Организация</th>
+            <th>Стоимость вещания</th>
+            <th>Доля бюджета</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <script>
-  document.addEventListener('click', function (e) {
-    if (!e.target.classList.contains('region-item')) { return }
-    console.log(e.target.id);
-
-    const url = `/api/region/${e.target.id}/broadcasts`;
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('broadcastHeader').style.display = 'block';
-        document.getElementById('broadcastsData').style.display = 'block';
-
-        // Update total cost
-        document.getElementById('broadcastHeader').textContent = e.target.textContent;
-        document.getElementById('totalCost').textContent = data.region_cost.toLocaleString() + ' т.р.';
-
-      })
-      .catch(error => {
-        console.error('Error loading broadcast data:', error);
-        document.getElementById('loading').textContent = 'Ошибка загрузки данных';
-      });
+document.getElementById('budgetForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const budget = parseFloat(document.getElementById('budget').value);
+  if (isNaN(budget) || budget <= 0) {
+    alert('Пожалуйста, введите корректную сумму бюджета');
+    return;
   }
-  );
+  
+  try {
+    // Fetch organization data from API
+    const response = await fetch('/api/organisations');
+    const organisationsData = await response.json();
+    
+    // Calculate total cost
+    const totalCost = Object.values(organisationsData).reduce((sum, cost) => sum + cost, 0);
+    
+    if (totalCost === 0) {
+      document.getElementById('results').style.display = 'none';
+      alert('Нет данных для расчета');
+      return;
+    }
+    
+    // Calculate shares and populate table
+    const resultsBody = document.getElementById('resultsBody');
+    resultsBody.innerHTML = '';
+    
+    for (const [orgName, cost] of Object.entries(organisationsData)) {
+      const share = (cost / totalCost) * budget;
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${orgName}</td>
+        <td>${cost.toFixed(2)} т.р.</td>
+        <td>${share.toFixed(2)} т.р.</td>
+      `;
+      resultsBody.appendChild(row);
+    }
+    
+    // Show results table
+    document.getElementById('results').style.display = 'block';
+    
+  } catch (error) {
+    console.error('Error calculating budget:', error);
+    alert('Ошибка при расчете бюджета');
+  }
+});
 </script>
 
 {% endblock %}

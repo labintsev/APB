@@ -1,4 +1,7 @@
-# Калькулятор покрытия радиорекламой
+# Калькулятор покрытия радиорекламой 
+
+## Описание проекта 
+
  The project appears to be a Flask web application with database functionality for managing broadcast targets organized by regions, districts, and organizations, with a web interface that includes HTML templates and static assets (CSS, JS, images).
  The app uses SQLite for data storage and has a database schema defined in target_schema.sql.
 
@@ -20,9 +23,12 @@
   - static/ - Contains CSS, JS, and image files
   - templates/ - HTML template files for the web interface
 
-  The project appears to be a Flask web application with a database backend, using SQLite (based on the .db file and target_schema.sql) for storing broadcast targets. It has a web interface for managing broadcast targets organized by regions,
-  districts, and organizations.
 
+## Запуск проекта
+
+```sh
+gunicorn --bind=0.0.0.0:8000 "app:app"
+```
 
 ## Функциональные требования для реализации на Flask + HTML + JS + CSS
 
