@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import backref
 
 db = SQLAlchemy()
 
@@ -13,8 +12,6 @@ class Organisation(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     email = db.Column(db.String(100), nullable=True)
     arv_member = db.Column(db.Boolean, default=False)
-
-    broadcasts = db.relationship('Broadcast', backref='organisation', cascade='all, delete')
 
     def __repr__(self):
         return f"<Organisation {self.name}>"
