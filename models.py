@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import backref
 
 db = SQLAlchemy()
 
@@ -12,6 +13,8 @@ class Organisation(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     email = db.Column(db.String(100), nullable=True)
     arv_member = db.Column(db.Boolean, default=False)
+
+    broadcasts = db.relationship('Broadcast', backref='organisation', cascade='all, delete')
 
     def __repr__(self):
         return f"<Organisation {self.name}>"
@@ -57,12 +60,6 @@ class Broadcast(db.Model):
     region_id = db.Column(db.Integer, db.ForeignKey("region.id"), nullable=False)
     frequency = db.Column(db.String(50), nullable=True)
     power = db.Column(db.Float, nullable=True)
-
-    # Relationships
-    org = db.relationship("Organisation", backref="broadcasts")
-    smi = db.relationship("Smi", backref="broadcasts")
-    district = db.relationship("District", backref="broadcasts")
-    region = db.relationship("Region", backref="broadcasts")
 
     def __repr__(self):
         return f"<Broadcast {self.id}>"

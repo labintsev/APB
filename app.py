@@ -1,5 +1,12 @@
+import os
+import logging
+
 from flask import Flask, redirect, render_template, jsonify, request, url_for
+from sqlalchemy.exc import IntegrityError
 from models import db, Organisation, Smi, Region, District, Broadcast
+
+os.makedirs('log', exist_ok=True)
+logging.basicConfig(level=logging.DEBUG, filename='log/logging.log')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///broadcasts.db'
@@ -15,13 +22,12 @@ cost_per_person = 5
 def calculate_cost(broadcast):
     try:
         # Get the broadcast details
-        smi = Smi.query.get(broadcast.smi_id)
-        district = District.query.get(broadcast.district_id)
-        
+        smi = Smi.query.get_or_404(broadcast.smi_id)
+        district = District.query.get_or_404(broadcast.district_id)
         if not smi or not district or not district.population:
             return 0
             
-        region = Region.query.get(district.region_id)
+        region = Region.query.get_or_404(district.region_id)
         if not region:
             return 0
             
@@ -74,7 +80,7 @@ def org_list():
         # Calculate total population for districts in these broadcasts
         for broadcast in broadcasts:
             if broadcast.district_id not in districts_covered:
-                district = District.query.get(broadcast.district_id)
+                district = District.query.get_or_404(broadcast.district_id)
                 if district and district.population:
                     total_population += district.population
                     districts_covered.add(broadcast.district_id)
@@ -143,7 +149,18 @@ def org_update(org_id):
         return render_template('org-update.html', organisation=org)
 
 
-# In app.py - Add the route to display broadcasts for an organization
+@app.route('/organisation/<int:org_id>/delete', methods=['POST'])
+def org_delete(org_id):
+    try:
+        org = Organisation.query.get_or_404(org_id)
+        db.session.delete(org)
+        db.session.commit()
+    except IntegrityError as e:
+        logging.error(e)
+
+    return redirect(url_for('org_list'))
+
+
 @app.route('/organisation/<int:org_id>/broadcasts')
 def org_broadcasts(org_id):
     org = Organisation.query.get_or_404(org_id)
@@ -212,15 +229,6 @@ def broadcast_delete(bro_id):
     db.session.delete(bro)
     db.session.commit()
     return redirect(url_for('org_broadcasts', org_id=bro.org_id))
-
-
-@app.route('/organisation/<int:org_id>/delete', methods=['POST'])
-def org_delete(org_id):
-    # Delete an organization by ID
-    org = Organisation.query.get_or_404(org_id)
-    db.session.delete(org)
-    db.session.commit()
-    return redirect(url_for('org_list'))
 
 
 @app.route('/smi_list')

@@ -39,8 +39,11 @@
       </div>
       <button type="submit" class="btn btn-primary">Обновить</button>
       <a href="{{ url_for('org_list') }}" class="btn btn-secondary">Отмена</a>
-      <a href="{{ url_for('org_delete', org_id=organisation.id) }}" class="btn btn-danger"
-        onclick="return confirm('Вы уверенны?')">Удалить</a>
+    </form>
+    <form method="post" action="{{ url_for('org_delete', org_id=organisation.id) }}" style="display:inline">
+      <button class="btn btn-danger" type="submit"
+        onclick="return confirm('Вы уверены, что хотите удалить эту запись?');">
+        Удалить</button>
     </form>
   </div>
 </div>
