@@ -61,5 +61,11 @@ class Broadcast(db.Model):
     frequency = db.Column(db.String(50), nullable=True)
     power = db.Column(db.Float, nullable=True)
 
+    # Relationships
+    org = db.relationship("Organisation", backref="broadcasts")
+    smi = db.relationship("Smi", backref="broadcasts")
+    district = db.relationship("District", backref="broadcasts")
+    region = db.relationship("Region", backref="broadcasts")
+
     def __repr__(self):
         return f"<Broadcast {self.id}>"
