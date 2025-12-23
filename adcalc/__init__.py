@@ -22,11 +22,6 @@ def create_app(test_config=None):
     db.init_app(app)
 
 
-    @app.context_processor
-    def inject_functions():
-        return dict(calculate_cost=calculate_cost) 
-
-
     @app.route('/')
     def index():
         """Главная страница: отображает калькулятор рекламного бюджета"""

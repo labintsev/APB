@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, request, url_for
 from .models import db, Organisation, Smi, Region, District, Broadcast
 
 district_bp = Blueprint('district', __name__, url_prefix='/district')
@@ -30,7 +30,7 @@ def district_create():
         )
         db.session.add(new_district)
         db.session.commit()
-        return redirect(url_for('district_list'))
+        return redirect(url_for('district.district_list'))
     else:
         # Show the form for creating a new district
         regions = Region.query.all()
@@ -48,12 +48,12 @@ def district_update(dis_id):
         district.population = request.form['population']
         district.region_id = request.form['region_id']
         db.session.commit()
-        return redirect(url_for('district_list'))
+        return redirect(url_for('district.district_list'))
     else:
         # Show the form for updating the district
         regions = Region.query.all()
         return render_template(
-            'district-update.html', 
+            'district/district-update.html', 
             district=district, 
             regions=regions)
 
@@ -64,4 +64,4 @@ def district_delete(dis_id):
     district = District.query.get_or_404(dis_id)
     db.session.delete(district)
     db.session.commit()
-    return redirect(url_for('district_list'))
+    return redirect(url_for('district.district_list'))

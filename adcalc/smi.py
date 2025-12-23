@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for
 from .models import db, Organisation, Smi, Region, District, Broadcast
 
 
@@ -31,7 +31,7 @@ def smi_create():
         )
         db.session.add(new_smi)
         db.session.commit()
-        return redirect(url_for('smi_list'))
+        return redirect(url_for('smi.smi_list'))
     else:
         # Show the form for creating a new SMIs
         return render_template('smi/smi-create.html')
@@ -48,7 +48,7 @@ def smi_update(smi_id):
         smis.rating = request.form['rating']
         smis.male = request.form['male']
         db.session.commit()
-        return redirect(url_for('smi_list'))
+        return redirect(url_for('smi.smi_list'))
     else:
         # Show the form for updating the SMIs
         return render_template('smi/smi-update.html', smi=smis)
@@ -60,4 +60,4 @@ def smi_delete(smi_id):
     smi = Smi.query.get_or_404(smi_id)
     db.session.delete(smi)
     db.session.commit()
-    return redirect(url_for('smi_list'))
+    return redirect(url_for('smi.smi_list'))
