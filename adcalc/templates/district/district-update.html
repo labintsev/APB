@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Новый район{% endblock %}
+{% block title %}Изменить район{% endblock %}
 
 {% block content %}
 
 <div class="container">
     <div class="card">
-        <h2>Добавить новый район</h2>
-        <form method="post" action="{{ url_for('district_create') }}">
+        <h2>Изменить район</h2>
+        <form method="post" action="{{ url_for('district.district_update', dis_id=district.id) }}">
 
             <div class="form-group">
                 <label for="name">Название района:</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name" required value="{{ district.name or '' }}">
             </div>
             <div class="form-group">
                 <label for="population">Население:</label>
-                <input type="number" id="population" name="population">
+                <input type="number" id="population" name="population" value="{{ district.population or '' }}">
             </div>
             <div>
                 <label for="region_id">Регион:</label>
                 <select id="region_id" name="region_id" required>
                     <option value="">Выберите регион</option>
                     {% for region in regions %}
-                    <option value="{{ region.id }}">{{ region.name }}</option>
+                    <option value="{{ region.id }}" {% if district.region_id == region.id %}selected{% endif %}>{{ region.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
 
-            <button type="submit" class="btn btn-primary">Добавить район</button>
+            <button type="submit" class="btn btn-primary">Обновить район</button>
 
         </form>
     </div>

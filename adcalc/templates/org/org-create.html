@@ -7,7 +7,7 @@
 <div class="container">
     <div class="card">
         <h2>Добавить новую организацию</h2>
-        <form method="post" action="{{ url_for('org_create') }}">
+        <form method="post" action="{{ url_for('org.org_create') }}">
             <div class="form-group">
                 <label for="name">Название:</label>
                 <input type="text" id="name" name="name" required class="form-control">
@@ -40,7 +40,7 @@
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Добавить организацию</button>
-                <a href="{{ url_for('org_list') }}" class="btn btn-secondary">Отмена</a>
+                <a href="{{ url_for('org.org_list') }}" class="btn btn-secondary">Отмена</a>
             </div>
         </form>
     </div>

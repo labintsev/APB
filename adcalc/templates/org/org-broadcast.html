@@ -10,7 +10,7 @@
     <h2>Трансляции для {{ organisation.name }}</h2>
 
     <h4>Создать новую трансляцию</h4>
-    <form method="POST" action="{{ url_for('broadcast_create', org_id=organisation.id) }}">
+    <form method="POST" action="{{ url_for('org.broadcast_create', org_id=organisation.id) }}">
 
       <div class="form-group">
         <label for="smi_id">СМИ:</label>
@@ -66,9 +66,9 @@
               <td>{{ broadcast.power or '-' }} кВт</td>
               <td> {{ calculate_cost(broadcast ) }} т.р.</td>
               <td>
-                <a href="{{ url_for('broadcast_update', bro_id=broadcast.id) }}"
+                <a href="{{ url_for('org.broadcast_update', bro_id=broadcast.id) }}"
                   class="btn btn-sm btn-warning">Изменить</a>
-                <a href="{{ url_for('broadcast_delete', bro_id=broadcast.id) }}" class="btn btn-sm btn-danger"
+                <a href="{{ url_for('org.broadcast_delete', bro_id=broadcast.id) }}" class="btn btn-sm btn-danger"
                   onclick="return confirm('Вы уверены, что хотите удалить эту трансляцию?')">Удалить</a>
               </td>
             </tr>

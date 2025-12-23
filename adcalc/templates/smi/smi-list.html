@@ -7,7 +7,7 @@
 <div class="container">
 	<div class="card">
 		<h2>Список СМИ</h2>
-		<a href="{{ url_for('smi_create') }}" class="btn btn-primary">Добавить СМИ</a>
+		<a href="{{ url_for('smi.smi_create') }}" class="btn btn-primary">Добавить СМИ</a>
 		{% if smis %}
 		<div class="table-wrap">
 			<table class="app-table">
@@ -26,8 +26,8 @@
 						<td>{{ s.rating }}</td>
 						<td>{{ s.male }} %</td>
 						<td>
-							<a class="btn" href="{{ url_for('smi_update', smi_id=s.id) }}">Править</a>
-							<form method="post" action="{{ url_for('smi_delete', smi_id=s.id) }}"
+							<a class="btn" href="{{ url_for('smi.smi_update', smi_id=s.id) }}">Править</a>
+							<form method="post" action="{{ url_for('smi.smi_delete', smi_id=s.id) }}"
 								style="display:inline">
 								<button class="btn btn-danger" type="submit"
 									onclick="return confirm('Вы уверены, что хотите удалить эту запись?');">

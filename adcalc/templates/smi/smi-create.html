@@ -7,7 +7,7 @@
 <div class="container">
     <div class="card">
         <h2>Добавить новое СМИ</h2>
-        <form method="post" action="{{ url_for('smi_create') }}">
+        <form method="post" action="{{ url_for('smi.smi_create') }}">
             <div class="form-group">
                 <label for="name">Название станции:</label>
                 <input type="text" id="name" name="name" required>

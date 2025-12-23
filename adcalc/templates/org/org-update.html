@@ -7,7 +7,7 @@
 <div class="container">
   <div class="card">
     <h2>Реквезиты организации</h2>
-    <form method="post" action="{{ url_for('org_update', org_id=organisation.id) }}">
+    <form method="post" action="{{ url_for('org.org_update', org_id=organisation.id) }}">
       <div class="form-group">
         <label for="name">Название:</label>
         <input type="text" id="name" name="name" value="{{ organisation.name }}" required>
@@ -38,9 +38,9 @@
           endif %}>
       </div>
       <button type="submit" class="btn btn-primary">Обновить</button>
-      <a href="{{ url_for('org_list') }}" class="btn btn-secondary">Отмена</a>
+      <a href="{{ url_for('org.org_list') }}" class="btn btn-secondary">Отмена</a>
     </form>
-    <form method="post" action="{{ url_for('org_delete', org_id=organisation.id) }}" style="display:inline">
+    <form method="post" action="{{ url_for('org.org_delete', org_id=organisation.id) }}" style="display:inline">
       <button class="btn btn-danger" type="submit"
         onclick="return confirm('Вы уверены, что хотите удалить эту запись?');">
         Удалить</button>

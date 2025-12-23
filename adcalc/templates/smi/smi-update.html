@@ -10,7 +10,7 @@
   </div>
 
   <div class="card">
-    <form method="post" action="{{ url_for('smi_update', smi_id=smi.id) }}">
+    <form method="post" action="{{ url_for('smi.smi_update', smi_id=smi.id) }}">
       <div class="form-group">
         <label for="name">Название станции:</label>
         <input type="text" id="name" name="name" value="{{ smi.name }}" required>
@@ -26,7 +26,7 @@
 
       <button type="submit" class="btn btn-primary">Обновить СМИ</button>
 
-      <a href="{{ url_for('smi_list') }}" class="btn btn-secondary">Отмена</a>
+      <a href="{{ url_for('smi.smi_list') }}" class="btn btn-secondary">Отмена</a>
       
     </form>
   </div>

@@ -5,7 +5,7 @@
 <div class="container">
   <div class="card">
     <h2>Список районов вещания</h2>
-    <a href="{{ url_for('district_create') }}" class="btn btn-primary">Добавить район</a>
+    <a href="{{ url_for('district.district_create') }}" class="btn btn-primary">Добавить район</a>
     {% if districts %}
     <div class="table-wrap">
       <table class="app-table">
@@ -24,8 +24,8 @@
             <td>{{ d.population }} тыс. чел.</td>
             <td>{{ d.region }}</td>
             <td>
-              <a class="btn" href="{{ url_for('district_update', dis_id=d.id) }}">Править</a>
-              <form method="post" action="{{ url_for('district_delete', dis_id=d.id) }}" style="display:inline">
+              <a class="btn" href="{{ url_for('district.district_update', dis_id=d.id) }}">Править</a>
+              <form method="post" action="{{ url_for('district.district_delete', dis_id=d.id) }}" style="display:inline">
                 <button class="btn btn-outline" type="submit" onclick="return confirm('Вы уверенны?')">Удалить</button>
               </form>
             </td>

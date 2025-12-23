@@ -8,7 +8,7 @@
 <div class="container">
   <div class="card">
     <h2>Список организаций</h2>
-    <a href="{{ url_for('org_create') }}" class="btn btn-primary">Добавить организацию</a>
+    <a href="{{ url_for('org.org_create') }}" class="btn btn-primary">Добавить организацию</a>
     <div class="table-wrap">
       <table class="app-table">
         <thead>
@@ -24,14 +24,14 @@
         <tbody>
           {% for org in organisations %}
           <tr>
-            <td><a href=" {{ url_for('org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a>
+            <td><a href=" {{ url_for('org.org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a>
             </td>
             <td>{{ org.total_smi }}</td>
             <td>{{ org.total_districts }}</td>
             <td>{{ org.total_population }} т. чел.</td>
             <td>{{ org.total_cost }} т.р.</td>
             <td>
-              <a href=" {{ url_for('org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a>
+              <a href=" {{ url_for('org.org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a>
             </td>
           </tr>
           {% endfor %}
