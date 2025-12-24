@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,12 +16,14 @@
                 <div class="site-brand">
                     <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo">
                     <div>
-                        <div class="brand-name"><a class="btn" href="{{ url_for('index') }}">Ассоциация Радиовещателей</a></div>
+                        <div class="brand-name"><a class="btn" href="{{ url_for('index') }}">Ассоциация
+                                Радиовещателей</a></div>
                         <div class="brand-sub small">Калькулятор покрытия рекламой</div>
                     </div>
                 </div>
 
                 <nav class="page-nav">
+                    <a class="btn" href="{{ url_for('region.region_coverage') }}">Покрытие</a>
                     <a class="btn" href="{{ url_for('region.region_list') }}">Регионы</a>
                     <a class="btn" href="{{ url_for('org.org_list') }}">Организации</a>
                     <a class="btn" href="{{ url_for('smi.smi_list') }}">СМИ</a>
@@ -36,4 +39,5 @@
 
     </div>
 </body>
+
 </html>

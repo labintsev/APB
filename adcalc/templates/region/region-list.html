@@ -1,65 +1,94 @@
 {% extends "base.html" %}
 
-{% block title %}Главная{% endblock %}
+{% block title %}Регионы{% endblock %}
 
 {% block content %}
 
 <div class="container">
-  <div class="main-content">
-    <div class="regions-column">
-      <h2 class="page-title">Регионы</h2>
-      <div class="regions-list">
+  <div class="card">
+    <h2>Средняя цена 1 минуты слушателя в регионе</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Название региона</th>
+          <th>Значение</th>
+          <th> </th>
+        </tr>
+      </thead>
+      <tbody>
         {% for r in regions %}
-        <div id="{{r.id}}" class="region-item">
-          {{ r.id }} - {{ r.name }}
-        </div>
+        <tr>
+          <td>{{ r.id }}. {{ r.name }}</td>
+          <td>
+            <input type="number" id="rating-{{ r.id }}" name="rating" value="{{ r.rating }}" min="0" max="100"
+              step="0.1">
+          </td>
+          <td>
+            <button type="button" class="save-btn" data-region-id="{{ r.id }}"
+              data-current-rating="{{ r.rating }}">Сохранить</button>
+          </td>
+        </tr>
         {% endfor %}
-      </div>
-    </div>
-
-    <div class="broadcasts-column">
-      <h2 class="page-title">Стоимость вещаний</h2>
-      <div class="broadcasts-info">
-        <div class="loading" id="loading">Выберите регион</div>
-        <h4 class="broadcasts-header" id="broadcastHeader" style="display: none;"></h4>
-        <div class="broadcasts-data" id="broadcastsData" style="display: none;">
-          <div class="broadcasts-summary">
-            <p class="total-cost" id="totalCost">0 ₽</p>
-          </div>
-          <div class="broadcasts-details">
-            <h3>Детали по районам</h3>
-            <div id="regionDetails"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </tbody>
+    </table>
   </div>
 </div>
 
 <script>
-  document.addEventListener('click', function (e) {
-    if (!e.target.classList.contains('region-item')) { return }
-    console.log(e.target.id);
+  document.addEventListener('DOMContentLoaded', function () {
+    // Disable save buttons initially
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.style.display = 'none';
+      button.disabled = true;
+    });
 
-    const url = `/api/region/${e.target.id}/broadcasts`;
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('broadcastHeader').style.display = 'block';
-        document.getElementById('broadcastsData').style.display = 'block';
+    // Enable save button when rating changes
+    document.querySelectorAll('input[name="rating"]').forEach(input => {
+      input.addEventListener('change', function () {
+        const button = this.closest('tr').querySelector('.save-btn');
+        const currentRating = this.value;
+        const originalRating = button.dataset.currentRating;
 
-        // Update total cost
-        document.getElementById('broadcastHeader').textContent = e.target.textContent;
-        document.getElementById('totalCost').textContent = data.region_cost.toLocaleString() + ' т.р.';
-
-      })
-      .catch(error => {
-        console.error('Error loading broadcast data:', error);
-        document.getElementById('loading').textContent = 'Ошибка загрузки данных';
+        if (currentRating !== originalRating) {
+          button.style.display = 'inline-block';
+          button.disabled = false;
+        } else {
+          button.style.display = 'none';
+          button.disabled = true;
+        }
       });
-  }
-  );
+    });
+
+    // Handle save button click
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const regionId = this.dataset.regionId;
+        const newRating = document.getElementById('rating-' + regionId).value;
+
+        fetch(`/region/${regionId}/update`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `rating=${encodeURIComponent(newRating)}`
+        })
+          .then(response => {
+            if (response.ok) {
+              // Update the current rating for next comparison
+              this.dataset.currentRating = newRating;
+              this.disabled = true;
+              alert('Рейтинг успешно обновлен');
+            } else {
+              alert('Ошибка при обновлении рейтинга');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при обновлении рейтинга');
+          });
+      });
+    });
+  });
 </script>
 
 {% endblock %}

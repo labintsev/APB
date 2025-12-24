@@ -5,29 +5,26 @@
  The project appears to be a Flask web application with database functionality for managing broadcast targets organized by regions, districts, and organizations, with a web interface that includes HTML templates and static assets (CSS, JS, images).
  The app uses SQLite for data storage and has a database schema defined in target_schema.sql.
 
-  Root Directory:
+  Projtct structure:
 
-  - .gitignore - Git ignore file
-  - app.py - Main application file
-  - models.py - Database models
-  - requirements.txt - Python dependencies
-  - static/ - Static files (CSS, JS, images)
-  - templates/ - HTML templates
+  - adcalc/  - Main application directory
+  -  | __init__.py - Application initialization and routes
+  -   | region.py - Blueprint for region-related routes
+  -   | org.py - Blueprint for organization-related routes
+  -   | district.py - Blueprint for district-related routes
+  -   | smi.py - Blueprint for SMI (likely a typo, should be 'broadcast') related routes
+  -   | utils.py - Utility functions for cost calculation and other operations
+  -   | db_schema.sql - Database schema definition
+  -   | models.py - Database models
+  -   | static/ - Static files (CSS, JS, images)
+  -   | templates/ - HTML templates
 
-  Key files:
-  - app.py - Main application logic 
-  - models.py - Database models 
-  - requirements.txt - Dependencies 
-
-  Directories:
-  - static/ - Contains CSS, JS, and image files
-  - templates/ - HTML template files for the web interface
 
 
 ## Запуск проекта
 
 ```sh
-gunicorn --bind=0.0.0.0:8000 "app:app" --daemon
+gunicorn --bind=0.0.0.0:8000 "adcalc:create_app()" --daemon
 ```
 
 ## Функциональные требования для реализации на Flask + HTML + JS + CSS
@@ -42,7 +39,7 @@ gunicorn --bind=0.0.0.0:8000 "app:app" --daemon
 *   **FR1.3:** Для таблиц использовать **DataTables.js** или аналогичную библиотеку для сортировки, поиска и пагинации.
 *   **FR1.4:** Для графиков использовать **Chart.js** или аналогичную легковесную библиотеку.
 *   **FR1.5:** Для запросов AJAX использовать **Fetch API** или **Axios**.
-*   **FR1.6:** Для форм использовать нативные HTML5 элементы с валидацией + Flask-WTF (опционально).
+*   **FR1.6:** Для форм использовать нативные HTML5 элементы с валидацией (опционально).
 
 ### **FR2: Структура базы данных и модели**
 *   **FR2.1:** Реализовать все таблицы из схемы как SQLAlchemy модели в `models.py`.
