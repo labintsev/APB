@@ -14,7 +14,7 @@ def calculate_cost(broadcast):
         if not region:
             return 0
             
-        cost = current_app.config['COST_PER_PERSON'] * smi.rating * district.population * region.rating
+        cost = (smi.rating / 100) * district.population * region.rating
         return cost
     except Exception as e:
         print(f"Error calculating cost: {e}")

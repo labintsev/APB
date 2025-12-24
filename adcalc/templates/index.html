@@ -21,7 +21,7 @@
         <thead>
           <tr>
             <th>Организация</th>
-            <th>Стоимость вещания</th>
+            <th>Цена 1 секунды</th>
             <th>Доля бюджета</th>
           </tr>
         </thead>
@@ -66,8 +66,8 @@ document.getElementById('budgetForm').addEventListener('submit', async function(
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${orgName}</td>
-        <td>${cost.toFixed(2)} т.р.</td>
-        <td>${share.toFixed(2)} т.р.</td>
+        <td>${cost.toFixed(1)} р.</td>
+        <td>${share.toFixed(1)} т.р.</td>
       `;
       resultsBody.appendChild(row);
     }

@@ -6,42 +6,46 @@
 {% block content %}
 <div class="container">
     <h2>Редактировать трансляцию</h2>
-    
+
     <form method="POST" action="{{ url_for('org.broadcast_update', bro_id=broadcast.id) }}">
-        
+
         <div class="form-group">
             <label for="smi_id">СМИ:</label>
             <select class="form-control" id="smi_id" name="smi_id" required>
                 {% for smi in smis %}
-                    <option value="{{ smi.id }}" {% if smi.id == broadcast.smi_id %}selected{% endif %}>
-                        {{ smi.name }}
-                    </option>
+                <option value="{{ smi.id }}" {% if smi.id==broadcast.smi_id %}selected{% endif %}>
+                    {{ smi.name }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="district_id">Район:</label>
             <select class="form-control" id="district_id" name="district_id" required>
                 {% for district in districts %}
-                    <option value="{{ district.id }}" {% if district.id == broadcast.district_id %}selected{% endif %}>
-                        {{ district.name }}
-                    </option>
+                <option value="{{ district.id }}" {% if district.id==broadcast.district_id %}selected{% endif %}>
+                    {{ district.name }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="frequency">Частота:</label>
-            <input type="text" class="form-control" id="frequency" name="frequency" value="{{ broadcast.frequency or '' }}">
+            <input type="text" class="form-control" id="frequency" name="frequency"
+                value="{{ broadcast.frequency or '' }}">
         </div>
-        
+
         <div class="form-group">
             <label for="power">Мощность:</label>
-            <input type="number" class="form-control" id="power" name="power" step="0.01" value="{{ broadcast.power or '' }}">
+            <input type="number" class="form-control" id="power" name="power" step="0.01"
+                value="{{ broadcast.power or '' }}">
         </div>
-        
+
         <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{{ url_for('org.broadcast_delete', bro_id=broadcast.id) }}" class="btn btn-sm btn-danger"
+            onclick="return confirm('Вы уверены, что хотите удалить эту трансляцию?')">Удалить</a>
         <a href="{{ url_for('org.org_broadcasts', org_id=broadcast.org_id) }}" class="btn btn-secondary">Отмена</a>
     </form>
 </div>

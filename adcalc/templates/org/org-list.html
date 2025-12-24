@@ -17,7 +17,7 @@
             <th>Количество СМИ</th>
             <th>Количество районов</th>
             <th>Население всего</th>
-            <th>Оценка стоимости рекламы</th>
+            <th>Цена 1 секунды</th>
             <th>Реквизиты</th>
           </tr>
         </thead>
@@ -29,7 +29,7 @@
             <td>{{ org.total_smi }}</td>
             <td>{{ org.total_districts }}</td>
             <td>{{ org.total_population }} т. чел.</td>
-            <td>{{ org.total_cost }} т.р.</td>
+            <td>{{ "%.1f" | format(org.total_cost) }} р.</td>
             <td>
               <a href=" {{ url_for('org.org_update', org_id=org.id) }} " class="btn btn-secondary">Изменить </a>
             </td>

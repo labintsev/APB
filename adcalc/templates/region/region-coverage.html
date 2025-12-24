@@ -18,7 +18,7 @@
     </div>
 
     <div class="broadcasts-column">
-      <h2 class="page-title">Стоимость вещаний</h2>
+      <h2 class="page-title">Цена 1 секунды рекламы</h2>
       <div class="broadcasts-info">
         <div class="loading" id="loading">Выберите регион</div>
         <h4 class="broadcasts-header" id="broadcastHeader" style="display: none;"></h4>
@@ -51,7 +51,7 @@
 
         // Update total cost
         document.getElementById('broadcastHeader').textContent = e.target.textContent;
-        document.getElementById('totalCost').textContent = data.region_cost.toLocaleString() + ' т.р.';
+        document.getElementById('totalCost').textContent = data.region_cost.toFixed(0) + ' р.';
 
       })
       .catch(error => {
