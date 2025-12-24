@@ -12,13 +12,6 @@ def smi_list():
     return render_template('smi/smi-list.html', smis=smis)
 
 
-@smi_bp.route('/<int:smi_id>')
-def smi_detail(smi_id):
-    # Show details for a specific SMIs
-    smi = Smi.query.get_or_404(smi_id)
-    return render_template('smi/smi-read.html', smi=smi)
-
-
 @smi_bp.route('/create', methods=['GET', 'POST'])
 def smi_create():
     # Handle both GET (show form) and POST (submit form) requests

@@ -11,13 +11,6 @@ def district_list():
     return render_template('district/district-list.html', districts=districts)
 
 
-@district_bp.route('/district/<int:dis_id>')
-def district_detail(dis_id):
-    # Show details for a specific district
-    district = District.query.get_or_404(dis_id)
-    return render_template('district/district-read.html', district=district)
-
-
 @district_bp.route('/create', methods=['GET', 'POST'])
 def district_create():
     # Handle both GET (show form) and POST (submit form) requests

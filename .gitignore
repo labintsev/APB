@@ -3,3 +3,5 @@ tmp/
 instance/
 __pycache__/
 log/
+.pytest_cache/
+.vscode/

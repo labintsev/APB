@@ -180,8 +180,9 @@ def broadcast_update(bro_id):
 
 @org_bp.route('/broadcast/<int:bro_id>/delete')
 def broadcast_delete(bro_id):
-    # Delete a broadcast by ID
-    bro = Broadcast.query.get_or_404(bro_id)
-    db.session.delete(bro)
-    db.session.commit()
-    return redirect(url_for('org.org_broadcasts', org_id=bro.org_id))
+    if request.method == 'GET':
+        # Delete a broadcast by ID with get method
+        bro = Broadcast.query.get_or_404(bro_id)
+        db.session.delete(bro)
+        db.session.commit()
+        return redirect(url_for('org.org_broadcasts', org_id=bro.org_id))

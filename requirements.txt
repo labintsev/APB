@@ -4,3 +4,7 @@ lxml
 Flask
 flask_sqlalchemy
 gunicorn
+# requirements-test.txt
+pytest
+pytest-cov
+flask-testing
