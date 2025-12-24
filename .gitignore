@@ -2,6 +2,6 @@ data/
 tmp/
 instance/
 __pycache__/
-log/
+logs/
 .pytest_cache/
 .vscode/
