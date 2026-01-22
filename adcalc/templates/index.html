@@ -4,9 +4,91 @@
 
 {% block content %}
 
+<style>
+  .organisations-selector {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #f9f9f9;
+  }
+  
+  .org-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    background-color: white;
+  }
+  
+  .org-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+  }
+  
+  .org-header:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .org-header input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
+  .org-toggle {
+    margin-left: 10px;
+    color: #666;
+    font-size: 12px;
+  }
+  
+  .org-cost {
+    margin-left: auto;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .broadcasts-list {
+    display: none;
+    margin-top: 10px;
+    padding-left: 30px;
+    border-left: 2px solid #ddd;
+  }
+  
+  .broadcasts-list.expanded {
+    display: block;
+  }
+  
+  .broadcast-item {
+    margin-bottom: 8px;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  
+  .broadcast-item input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .broadcast-info {
+    color: #666;
+    font-size: 13px;
+  }
+</style>
+
 <div class="container">
   <div class="card">
     <h1>Калькулятор</h1>
+    
+    <div class="organisations-selector">
+      <h3>Выберите организации для распределения бюджета:</h3>
+      <div id="organisationsList">
+        <p>Загрузка организаций...</p>
+      </div>
+    </div>
+    
     <form id="budgetForm">
       <div class="form-group">
         <label for="budget">Рекламный бюджет (т.р.):</label>
@@ -33,7 +115,143 @@
 </div>
 
 <script>
-document.getElementById('budgetForm').addEventListener('submit', async function(e) {
+let organisationsData = [];
+
+// Load organizations on page load
+async function loadOrganisations() {
+  try {
+    const response = await fetch('/api/organisations-detailed');
+    organisationsData = await response.json();
+    renderOrganisationsList();
+  } catch (error) {
+    console.error('Error loading organisations:', error);
+    document.getElementById('organisationsList').innerHTML = '<p>Ошибка при загрузке организаций</p>';
+  }
+}
+
+function renderOrganisationsList() {
+  const listContainer = document.getElementById('organisationsList');
+  listContainer.innerHTML = '';
+  
+  organisationsData.forEach(org => {
+    const orgItem = document.createElement('div');
+    orgItem.className = 'org-item';
+    orgItem.dataset.orgId = org.id;
+    
+    const orgHeader = document.createElement('div');
+    orgHeader.className = 'org-header';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'org-checkbox';
+    checkbox.dataset.orgId = org.id;
+    checkbox.addEventListener('change', (e) => {
+      toggleOrgBroadcasts(org.id, e.target.checked);
+    });
+    
+    const label = document.createElement('span');
+    label.textContent = org.name;
+    
+    const toggle = document.createElement('span');
+    toggle.className = 'org-toggle';
+    toggle.textContent = org.broadcasts.length > 0 ? '▶' : '(нет трансляций)';
+    
+    const cost = document.createElement('span');
+    cost.className = 'org-cost';
+    cost.textContent = org.broadcasts.length > 0 ? `${org.cost.toFixed(1)} р.` : '';
+    
+    orgHeader.appendChild(checkbox);
+    orgHeader.appendChild(label);
+    if (org.broadcasts.length > 0) {
+      orgHeader.appendChild(toggle);
+    }
+    orgHeader.appendChild(cost);
+    
+    orgHeader.addEventListener('click', (e) => {
+      if (e.target !== checkbox && org.broadcasts.length > 0) {
+        toggleBroadcastsList(org.id);
+      }
+    });
+    
+    orgItem.appendChild(orgHeader);
+    
+    if (org.broadcasts.length > 0) {
+      const broadcastsList = document.createElement('div');
+      broadcastsList.className = 'broadcasts-list';
+      broadcastsList.dataset.orgId = org.id;
+      
+      org.broadcasts.forEach(broadcast => {
+        const broadcastItem = document.createElement('div');
+        broadcastItem.className = 'broadcast-item';
+        
+        const broadcastCheckbox = document.createElement('input');
+        broadcastCheckbox.type = 'checkbox';
+        broadcastCheckbox.className = 'broadcast-checkbox';
+        broadcastCheckbox.dataset.broadcastId = broadcast.id;
+        broadcastCheckbox.dataset.orgId = org.id;
+        
+        const broadcastLabel = document.createElement('span');
+        broadcastLabel.textContent = `${broadcast.smi} - ${broadcast.district}`;
+        
+        const broadcastCost = document.createElement('span');
+        broadcastCost.className = 'broadcast-info';
+        broadcastCost.textContent = ` (${broadcast.cost.toFixed(1)} р.)`;
+        
+        broadcastItem.appendChild(broadcastCheckbox);
+        broadcastItem.appendChild(broadcastLabel);
+        broadcastItem.appendChild(broadcastCost);
+        
+        broadcastsList.appendChild(broadcastItem);
+      });
+      
+      orgItem.appendChild(broadcastsList);
+    }
+    
+    listContainer.appendChild(orgItem);
+  });
+}
+
+function toggleBroadcastsList(orgId) {
+  const broadcastsList = document.querySelector(`.broadcasts-list[data-org-id="${orgId}"]`);
+  const orgHeader = document.querySelector(`.org-item[data-org-id="${orgId}"] .org-header`);
+  
+  if (broadcastsList) {
+    broadcastsList.classList.toggle('expanded');
+    const toggle = orgHeader.querySelector('.org-toggle');
+    if (toggle) {
+      toggle.textContent = broadcastsList.classList.contains('expanded') ? '▼' : '▶';
+    }
+  }
+}
+
+function toggleOrgBroadcasts(orgId, checked) {
+  const broadcastsCheckboxes = document.querySelectorAll(`.broadcast-checkbox[data-org-id="${orgId}"]`);
+  broadcastsCheckboxes.forEach(cb => {
+    cb.checked = checked;
+  });
+}
+
+// Calculate selected cost
+function getSelectedCost() {
+  let totalCost = 0;
+  
+  document.querySelectorAll('.broadcast-checkbox:checked').forEach(checkbox => {
+    const broadcastId = checkbox.dataset.broadcastId;
+    const orgId = checkbox.dataset.orgId;
+    
+    const org = organisationsData.find(o => o.id == orgId);
+    if (org) {
+      const broadcast = org.broadcasts.find(b => b.id == broadcastId);
+      if (broadcast) {
+        totalCost += broadcast.cost;
+      }
+    }
+  });
+  
+  return totalCost;
+}
+
+document.getElementById('budgetForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   const budget = parseFloat(document.getElementById('budget').value);
@@ -42,44 +260,45 @@ document.getElementById('budgetForm').addEventListener('submit', async function(
     return;
   }
   
-  try {
-    // Fetch organization data from API
-    const response = await fetch('/api/organisations');
-    const organisationsData = await response.json();
+  const totalCost = getSelectedCost();
+  
+  if (totalCost === 0) {
+    alert('Пожалуйста, выберите хотя бы одну трансляцию');
+    return;
+  }
+  
+  // Build results by organization
+  const resultsBody = document.getElementById('resultsBody');
+  resultsBody.innerHTML = '';
+  
+  organisationsData.forEach(org => {
+    let orgCost = 0;
     
-    // Calculate total cost
-    const totalCost = Object.values(organisationsData).reduce((sum, cost) => sum + cost, 0);
+    org.broadcasts.forEach(broadcast => {
+      const checkbox = document.querySelector(`.broadcast-checkbox[data-broadcast-id="${broadcast.id}"][data-org-id="${org.id}"]`);
+      if (checkbox && checkbox.checked) {
+        orgCost += broadcast.cost;
+      }
+    });
     
-    if (totalCost === 0) {
-      document.getElementById('results').style.display = 'none';
-      alert('Нет данных для расчета');
-      return;
-    }
-    
-    // Calculate shares and populate table
-    const resultsBody = document.getElementById('resultsBody');
-    resultsBody.innerHTML = '';
-    
-    for (const [orgName, cost] of Object.entries(organisationsData)) {
-      const share = (cost / totalCost) * budget;
+    if (orgCost > 0) {
+      const share = (orgCost / totalCost) * budget;
       
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${orgName}</td>
-        <td>${cost.toFixed(1)} р.</td>
+        <td>${org.name}</td>
+        <td>${orgCost.toFixed(1)} р.</td>
         <td>${share.toFixed(1)} т.р.</td>
       `;
       resultsBody.appendChild(row);
     }
-    
-    // Show results table
-    document.getElementById('results').style.display = 'block';
-    
-  } catch (error) {
-    console.error('Error calculating budget:', error);
-    alert('Ошибка при расчете бюджета');
-  }
+  });
+  
+  document.getElementById('results').style.display = 'block';
 });
+
+// Load organisations on page load
+loadOrganisations();
 </script>
 
 {% endblock %}
