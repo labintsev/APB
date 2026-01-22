@@ -21,7 +21,7 @@ def test_region_list_view(client):
     """GET /region/list renders the region list page."""
     rv = client.get("/region/list")
     assert rv.status_code == 200
-    assert "Средняя цена 1 минуты слушателя в регионе" in rv.data.decode('utf-8')
+    assert "Средняя цена 1 секунды рекламы" in rv.data.decode('utf-8')
 
 
 def test_region_coverage_view(client):
