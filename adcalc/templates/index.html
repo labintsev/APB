@@ -76,6 +76,27 @@
     color: #666;
     font-size: 13px;
   }
+  
+  .select-all-container {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #e8f4f8;
+    border: 1px solid #b3d9e6;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .select-all-container input[type="checkbox"] {
+    margin: 0;
+  }
+  
+  .select-all-container label {
+    margin: 0;
+    font-weight: bold;
+    cursor: pointer;
+  }
 </style>
 
 <div class="container">
@@ -84,6 +105,10 @@
     
     <div class="organisations-selector">
       <h3>Выберите организации для распределения бюджета:</h3>
+      <div class="select-all-container">
+        <input type="checkbox" id="selectAllCheckbox">
+        <label for="selectAllCheckbox">Выбрать / Снять выделение со всех</label>
+      </div>
       <div id="organisationsList">
         <p>Загрузка организаций...</p>
       </div>
@@ -133,6 +158,9 @@ function renderOrganisationsList() {
   const listContainer = document.getElementById('organisationsList');
   listContainer.innerHTML = '';
   
+  // Reset select-all checkbox
+  document.getElementById('selectAllCheckbox').checked = false;
+  
   organisationsData.forEach(org => {
     const orgItem = document.createElement('div');
     orgItem.className = 'org-item';
@@ -147,6 +175,7 @@ function renderOrganisationsList() {
     checkbox.dataset.orgId = org.id;
     checkbox.addEventListener('change', (e) => {
       toggleOrgBroadcasts(org.id, e.target.checked);
+      updateSelectAllCheckbox();
     });
     
     const label = document.createElement('span');
@@ -231,6 +260,32 @@ function toggleOrgBroadcasts(orgId, checked) {
   });
 }
 
+function toggleSelectAll(checked) {
+  const orgCheckboxes = document.querySelectorAll('.org-checkbox');
+  orgCheckboxes.forEach(checkbox => {
+    checkbox.checked = checked;
+    const orgId = checkbox.dataset.orgId;
+    toggleOrgBroadcasts(orgId, checked);
+  });
+}
+
+function updateSelectAllCheckbox() {
+  const orgCheckboxes = document.querySelectorAll('.org-checkbox');
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  
+  if (orgCheckboxes.length === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+    return;
+  }
+  
+  const allChecked = Array.from(orgCheckboxes).every(cb => cb.checked);
+  const someChecked = Array.from(orgCheckboxes).some(cb => cb.checked);
+  
+  selectAllCheckbox.checked = allChecked;
+  selectAllCheckbox.indeterminate = someChecked && !allChecked;
+}
+
 // Calculate selected cost
 function getSelectedCost() {
   let totalCost = 0;
@@ -295,6 +350,11 @@ document.getElementById('budgetForm').addEventListener('submit', function(e) {
   });
   
   document.getElementById('results').style.display = 'block';
+});
+
+// Select all checkbox event listener
+document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
+  toggleSelectAll(e.target.checked);
 });
 
 // Load organisations on page load
