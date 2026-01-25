@@ -4,6 +4,7 @@ from .region import region_bp
 from .org import org_bp
 from .district import district_bp
 from .smi import smi_bp
+from .api import api_bp
 from .utils import calculate_cost
 import logging
 from logging.handlers import RotatingFileHandler
@@ -40,37 +41,9 @@ def create_app(test_config=None):
     @app.route('/')
     def index():
         """Главная страница: отображает калькулятор рекламного бюджета"""
-        regions = Region.query.all()
-        return render_template('index.html', regions=regions)
+        return render_template('index.html')
 
-    @app.route('/api/organisations')
-    def api_organisations():
-        """API для получения JSON всех организаций со стоимостью вещаний
-        Используется для калькулятора на главной странице"""
-        organisations_data = {}
-        organisations = Organisation.query.all()
-        for organisation in organisations:
-            organisations_data[organisation.name] = sum(
-                [calculate_cost(broadcast) for broadcast in organisation.broadcasts])
-        return jsonify(organisations_data)
-
-
-    @app.route('/api/region/<int:reg_id>/broadcasts')
-    def api_region_smi(reg_id):
-        """API для получения JSON вещаний для конкретного региона
-        Используется в списке регионов"""
-        output = {}
-        if reg_id == 0:
-            region_broadcasts = Broadcast.query.all()
-        else:
-            region_broadcasts = Broadcast.query.filter_by(region_id=reg_id).all()
-
-        # Calculate total cost of broadcasts
-        region_cost = sum([calculate_cost(broadcast) for broadcast in region_broadcasts])
-        output['region_cost'] = region_cost  
-
-        return jsonify(output)
-
+    app.register_blueprint(api_bp)
     app.register_blueprint(region_bp)
     app.register_blueprint(org_bp)
     app.register_blueprint(district_bp)

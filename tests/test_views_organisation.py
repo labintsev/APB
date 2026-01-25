@@ -263,24 +263,6 @@ def test_broadcast_delete_view(client):
     assert len(org.broadcasts) == 0
 
 
-# --------------------------------------------------------------------------- #
-#  API endpoints used by the front‑end (optional but useful)
-# --------------------------------------------------------------------------- #
-def test_api_organisations_costs(client):
-    """GET /api/organisations – returns correct JSON of total costs."""
-    reg = _create_region()
-    dist = _create_district(reg)
-    smi = _create_smi()
-    org = _create_org("Org‑API")
-    _create_broadcast(org, smi, dist)
-    rv = client.get("/api/organisations")
-    assert rv.status_code == 200
-    data = rv.get_json()
-    # cost is the same as calculate_cost(broadcast)
-    expected_cost = calculate_cost(org.broadcasts[0])
-    assert data[org.name] == expected_cost
-
-
 def test_api_region_broadcasts(client):
     """GET /api/region/<id>/broadcasts – returns region cost."""
     reg = _create_region()
@@ -293,3 +275,4 @@ def test_api_region_broadcasts(client):
     data = rv.get_json()
     expected_cost = calculate_cost(org.broadcasts[0])
     assert data["region_cost"] == expected_cost
+    

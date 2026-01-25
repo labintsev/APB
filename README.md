@@ -1,110 +1,19 @@
-# Калькулятор покрытия радиорекламой 
+# Калькулятор покрытия рекламой для Ассоциации Радиовещателей
 
-## Описание проекта 
+## Описание проекта
 
- The project appears to be a Flask web application with database functionality for managing broadcast targets organized by regions, districts, and organizations, with a web interface that includes HTML templates and static assets (CSS, JS, images).
- The app uses SQLite for data storage and has a database schema defined in target_schema.sql.
+Этот проект представляет собой веб-приложение для расчета распределения рекламного бюджета между организациями на основе данных о СМИ, районах вещания и регионах. Приложение позволяет:
 
-  Projtct structure:
-
-  - adcalc/  - Main application directory
-  -  | __init__.py - Application initialization and routes
-  -   | region.py - Blueprint for region-related routes
-  -   | org.py - Blueprint for organization-related routes
-  -   | district.py - Blueprint for district-related routes
-  -   | smi.py - Blueprint for SMI (likely a typo, should be 'broadcast') related routes
-  -   | utils.py - Utility functions for cost calculation and other operations
-  -   | db_schema.sql - Database schema definition
-  -   | models.py - Database models
-  -   | static/ - Static files (CSS, JS, images)
-  -   | templates/ - HTML templates
+- Управлять базой данных СМИ, организаций, районов и регионов
+- Рассчитывать стоимость одной секунды рекламы для каждой организации и рекламодателя 
+- Распределять заданный рекламный бюджет между организациями пропорционально их стоимости покрытия
 
 
-
-## Запуск проекта
-
-```sh
-gunicorn --bind=0.0.0.0:8000 "adcalc:create_app()" --daemon
-```
-
-## Функциональные требования для реализации на Flask + HTML + JS + CSS
-
-Несколько организаций осуществляют покрытие радио в определенных регионах и районах несколькими СМИ. 
-Нужно вычислить среднюю месячную стоимость рекламы для каждой организации. 
-На главной странице отображать список регионов с возможностью прочитать какие сми вещают в каждом регионе. 
-
-### **FR1: Архитектура и технологии**
-*   **FR1.1:** Серверная часть реализуется на **Flask 3.x**, использует **SQLAlchemy ORM** для работы с SQLite.
-*   **FR1.2:** Фронтенд - чистая **HTML5, CSS3, JavaScript (ES6+)** без тяжелых фреймворков.
-*   **FR1.3:** Для таблиц использовать **DataTables.js** или аналогичную библиотеку для сортировки, поиска и пагинации.
-*   **FR1.4:** Для графиков использовать **Chart.js** или аналогичную легковесную библиотеку.
-*   **FR1.5:** Для запросов AJAX использовать **Fetch API** или **Axios**.
-*   **FR1.6:** Для форм использовать нативные HTML5 элементы с валидацией (опционально).
-
-### **FR2: Структура базы данных и модели**
-*   **FR2.1:** Реализовать все таблицы из схемы как SQLAlchemy модели в `models.py`.
-*   **FR2.2:** Добавить отношения между моделями:
-    ```python
-    # Пример для модели Broadcast
-    organisation = relationship('Organisation', back_populates='broadcasts')
-    district = relationship('District', back_populates='broadcasts')
-    smi = relationship('Smi', back_populates='broadcasts')
-    ```
-*   **FR2.3:** Создать скрипт инициализации БД (`init_db.py`) с тестовыми данными для демонстрации.
-
-### **FR3: Маршруты Flask (routes)**
-*   **FR3.1:** Главная страница:
-    ```
-    GET / - отображает список регионов с возможностью раскрытия СМИ
-    ```
-*   **FR3.2:** API для получения данных:
-    ```
-    GET /api/regions - JSON всех регионов с суммарным населением
-    GET /api/region/<int:id>/smi - JSON СМИ для конкретного региона
-    GET /api/organisations - JSON всех организаций
-    GET /api/calculation/<int:org_id> - JSON расчета стоимости для организации
-    ```
-*   **FR3.3:** Страницы CRUD:
-    ```
-    GET     /org_list                          # Список всех организаций
-    GET     /organisation/<int:org_id>         # Детальная информация об организации
-    GET     /organisation/create               # Форма создания новой организации
-    POST    /organisation/create               # Обработка создания организации
-    GET     /organisation/<int:id>/update      # Форма редактирования организации
-    POST    /organisation/<int:id>/update      # Обработка обновления организации
-    POST    /organisation/<int:id>/delete      # Удаление организации
-
-    GET     /smi_list                          # Список всех СМИ
-    GET     /smi/<int:smi_id>                  # Детальная информация о СМИ
-    GET     /smi/create                        # Форма создания нового СМИ
-    POST    /smi/create                        # Обработка создания СМИ
-    GET     /smi/<int:id>/edit                 # Форма редактирования СМИ
-    POST    /smi/<int:id>/update               # Обработка обновления СМИ
-    POST    /smi/<int:id>/delete               # Удаление СМИ
-    GET     /smi/<int:id>/broadcasts           # Список районов вещания данного СМИ
-
-    GET     /district                          # Список всех районов
-    GET     /district/<int:dis_id>             # Детальная информация о районе
-    GET     /district/create                   # Форма создания нового района
-    POST    /district/create                   # Обработка создания района
-    GET     /district/<int:id>/edit            # Форма редактирования района
-    POST    /district/<int:id>/update          # Обработка обновления района
-    POST    /district/<int:id>/delete          # Удаление района
-
-    GET     /district/<int:id>/broadcasts      # Список вещаний СМИ в районе
-    GET     /api/districts/by-region/<int:region_id>  # API: Районы по региону (JSON)
+*Приложение разработано для автоматизации расчета рекламного бюджета в ассоциации радиовещателей*
 
 
-    POST    /broadcast/create                  # Обработка создания вещания
-    GET     /broadcast/<int:id>/update         # Форма редактирования вещания
-    POST    /broadcast/<int:id>/update         # Обработка обновления вещания
-    POST    /broadcast/<int:id>/delete         # Удаление вещания
-    GET     /broadcast/filter                  # Фильтр вещаний по параметрам
-    POST    /api/broadcast/calculate           # API: Расчет стоимости вещания
+## Инструкция по применению
 
-    ```
-
-Инструкция по применению
 1. На вкладке Организации добавить организацию
 2. Добавить СМИ на вкладке СМИ
 3. Добавить район вещания на вкладке Район вещания
@@ -113,3 +22,85 @@ gunicorn --bind=0.0.0.0:8000 "adcalc:create_app()" --daemon
 6. Убедиться что список трансляций для организации соответствует ожиданиям.
 7. Перейти на главную страницу (ссылка Ассоциация Радиовещателей в верхнем левом углу).
 8. Ввести бюджет и нажать кнопку Рассчитать. 
+
+### Расчет стоимости:
+Стоимость одной секунды рекламы рассчитывается по формуле:
+```
+Стоимость = (Рейтинг СМИ / 100) × Население района × Коэффициент региона
+```
+
+## Установка
+
+```bash
+# Клонировать репозиторий
+git clone <repository-url>
+cd <project-name>
+
+# Создать виртуальное окружение
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# или venv\Scripts\activate  # Windows
+
+# Установить зависимости
+pip install -r requirements.txt
+
+# Запустить приложение
+flask --app adcalc run --debug
+```
+
+###  Запуск на сервере
+
+```sh
+gunicorn --bind=0.0.0.0:8000 "adcalc:create_app()" --daemon
+```
+
+## Использование
+
+**Доступ к приложению**:
+   Откройте браузер и перейдите по адресу: `http://localhost:5000`
+
+3. **Основные страницы**:
+   - **Главная**: Калькулятор бюджета
+   - **Организации**: Управление организациями
+   - **СМИ**: Управление СМИ
+   - **Районы вещания**: Управление районами
+   - **Регионы**: Настройка коэффициентов регионов
+
+## Документация
+
+### Структура данных:
+- **СМИ**: Название, рейтинг, доля мужской аудитории
+- **Организации**: Название, реквизиты
+- **Районы вещания**: Название, население, регион
+- **Регионы**: Название, коэффициент стоимости
+
+### Расчет стоимости:
+Стоимость рассчитывается как произведение:
+1. Рейтинг СМИ / 100
+2. Население района (в тысячах человек)
+3. Коэффициент региона
+
+## Разработка
+
+### Для разработчиков:
+1. Создайте виртуальное окружение
+2. Установите зависимости
+3. Запустите сервер разработки
+
+### Тестирование:
+Приложение использует стандартные тесты Flask. Для запуска тестов:
+```bash
+python -m pytest
+```
+
+## Лицензия
+
+[Укажите лицензию проекта, если она есть]
+
+## Автор
+
+@ailabintsev
+
+## Благодарности
+
+Разработчики Flask, continue, qwen и многих других проектов, которые были использованы в разработке этого приложения.
