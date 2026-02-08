@@ -76,6 +76,9 @@
 
       <button class="btn btn-primary" type="submit">Сохранить</button>
       <a class="btn btn-secondary" href="{{ url_for('broadcast.broadcast_list') }}">Отмена</a>
+      <form method="post" action="{{ url_for('broadcast.broadcast_delete', broadcast_id=broadcast.id) }}" style="display:inline-block; margin-left: 10px;">
+        <button class="btn btn-danger" type="submit" onclick="return confirm('Удалить трансляцию?')">Удалить</button>
+      </form>
     </form>
   </div>
 </div>

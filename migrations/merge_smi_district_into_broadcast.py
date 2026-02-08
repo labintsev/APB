@@ -36,48 +36,27 @@ def run(drop_source_tables=False):
         trans = conn.begin()
         
         try:
-            # Add columns (SQLite supports ADD COLUMN)
-            try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN smi_name TEXT"))
-                print("✓ Added smi_name column")
-            except Exception as e:
-                print(f"  smi_name column already exists or error: {e}")
-            
-            try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN smi_rating REAL"))
-                print("✓ Added smi_rating column")
-            except Exception as e:
-                print(f"  smi_rating column already exists or error: {e}")
-            
-            try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN smi_male_proportion REAL"))
-                print("✓ Added smi_male_proportion column")
-            except Exception as e:
-                print(f"  smi_male_proportion column already exists or error: {e}")
-            
-            try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN district_name TEXT"))
-                print("✓ Added district_name column")
-            except Exception as e:
-                print(f"  district_name column already exists or error: {e}")
-            
-            try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN district_population INTEGER"))
-                print("✓ Added district_population column")
-            except Exception as e:
-                print(f"  district_population column already exists or error: {e}")
+            # Create new broadcast table
+            conn.execute(text("""
+                CREATE TABLE broadcast_new (
+                    id INTEGER PRIMARY KEY,
+                    org_id INTEGER,
+                    smi_name TEXT,
+                    smi_rating REAL,
+                    smi_male_proportion REAL,
+                    district_name TEXT,
+                    district_population INTEGER,
+                    region_id INTEGER,
+                    frequency TEXT,
+                    power REAL
+                )
+            """))
+            # copy data from old tables
 
-            # Populate new columns from existing tables
-            update_sql = """
-            UPDATE broadcast SET
-              smi_name = (SELECT name FROM smi WHERE smi.id = broadcast.smi_id),
-              smi_rating = (SELECT rating FROM smi WHERE smi.id = broadcast.smi_id),
-              smi_male_proportion = (SELECT male FROM smi WHERE smi.id = broadcast.smi_id),
-              district_name = (SELECT name FROM district WHERE district.id = broadcast.district_id),
-              district_population = (SELECT population FROM district WHERE district.id = broadcast.district_id)
-            """
-            result = conn.execute(text(update_sql))
-            print(f"✓ Updated {result.rowcount} broadcast records with smi and district data")
+            
+            # Rename broadcast table
+            conn.execute(text("DROP TABLE broadcast"))
+            conn.execute(text("ALTER TABLE broadcast_new RENAME TO broadcast"))
 
             if drop_source_tables:
                 try:
@@ -86,7 +65,6 @@ def run(drop_source_tables=False):
                     print('✓ Dropped source tables `smi` and `district`')
                 except Exception as e:
                     print('Warning: failed to drop source tables:', e)
-
             trans.commit()
             print("\n✓ Migration completed successfully!")
         except Exception as e:
