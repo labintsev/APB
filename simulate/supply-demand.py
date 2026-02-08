@@ -1,9 +1,11 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # 1. Моделирование спроса и предложения
 Q_max = 20      # Максимальный объём рекламного времени за сутки, %
-q = np.linspace(0, Q_max, 100)
+N = 20        # Количество точек для моделирования
+q = np.linspace(0, Q_max, N)
 
 # Параметры линейной модели предложения
 P_min = 0.9                         # Минимальная цена (руб.) при нулевом объёме предложения
@@ -26,9 +28,22 @@ revenue = people * t * np.min(np.stack([P_supply, P_demand]), axis=0) / 600
 profit = revenue - cost
 
 # 3. Моделирование выручки с участием в ассоциации
-t_apb = np.linspace(2, 20, 100) * 3600 * 15 / 100
+t_apb = np.linspace(2, 20, N) * 3600 * 15 / 100
 revenue_apb  = people * t_apb * np.min(np.stack([P_supply, P_demand]), axis=0) / 600  + 2
 profit_apb = revenue_apb - cost
+
+df = pd.DataFrame({
+    'q, %': q,
+    'P_supply, руб.': [int(p) for p in P_supply],
+    'P_demand, руб.': [int(p) for p in P_demand],
+    't, сек.': [int(t_) for t_ in t],
+    'revenue, тыс. руб.': [int(r) for r in revenue],
+    'cost, тыс. руб.': [int(c) for c in cost],
+    'profit, тыс. руб.': [int(p) for p in profit],
+    't_apb, сек.': [int(t_apb_) for t_apb_ in t_apb],
+    'profit_apb, тыс. руб.': [int(p) for p in profit_apb]
+})
+df.to_csv('simulate/supply-demand.csv', index=False)
 
 # 4. Визуализация результатов
 
@@ -37,8 +52,8 @@ plt.figure(figsize=(10, 6))
 plt.xlabel('Доля рекламы в эфире, q [%]')
 plt.ylabel('Цена 1 секунды рекламы на аудиторию 1000 человек (руб.)')
 
-plt.plot(q, P_supply, label=f'Предложение $P(q) = {P_min} \\cdot e^{{{k_s} \\cdot q}}$', color='darkorange')
-plt.plot(q, P_demand, label=f'Спрос $P(q) = {P_max} \\cdot e^{{{k_d} \\cdot q}}$', color='blue')
+plt.plot(q, P_supply, label=f'Предложение', color='darkorange')
+plt.plot(q, P_demand, label=f'Спрос', color='blue')
 
 plt.title('Кривые предложения и спроса', fontsize=16, fontweight='bold', pad=20)
 plt.grid(True, linestyle='--', alpha=0.7)
@@ -53,7 +68,7 @@ plt.savefig('simulate/supply-demand.png')
 # Построение графиков выручки и затрат
 plt.figure(figsize=(10, 6))
 plt.xlabel('Проданное время за сутки, [сек.]')
-plt.ylabel('Выручка и затраты, [млн. руб.]') 
+plt.ylabel('Выручка и затраты, [тыс. руб.]') 
 
 plt.plot(t, revenue, label='Выручка', color='darkorange')
 plt.plot(t, cost, label='Затраты', color='blue')
