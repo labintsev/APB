@@ -10,7 +10,7 @@ Example:
     python migrations/merge_smi_district_into_broadcast.py
 
 The script will:
- - add columns to `broadcast` for smi_name, smi_rating, smi_male,
+ - add columns to `broadcast` for smi_name, smi_rating, smi_male_proportion, 
    district_name, district_population
  - populate these columns from existing `smi` and `district` tables
  - (optionally) drop the `smi` and `district` tables
@@ -50,10 +50,10 @@ def run(drop_source_tables=False):
                 print(f"  smi_rating column already exists or error: {e}")
             
             try:
-                conn.execute(text("ALTER TABLE broadcast ADD COLUMN smi_male REAL"))
-                print("✓ Added smi_male column")
+                conn.execute(text("ALTER TABLE broadcast ADD COLUMN smi_male_proportion REAL"))
+                print("✓ Added smi_male_proportion column")
             except Exception as e:
-                print(f"  smi_male column already exists or error: {e}")
+                print(f"  smi_male_proportion column already exists or error: {e}")
             
             try:
                 conn.execute(text("ALTER TABLE broadcast ADD COLUMN district_name TEXT"))
@@ -72,7 +72,7 @@ def run(drop_source_tables=False):
             UPDATE broadcast SET
               smi_name = (SELECT name FROM smi WHERE smi.id = broadcast.smi_id),
               smi_rating = (SELECT rating FROM smi WHERE smi.id = broadcast.smi_id),
-              smi_male = (SELECT male FROM smi WHERE smi.id = broadcast.smi_id),
+              smi_male_proportion = (SELECT male_proportion FROM smi WHERE smi.id = broadcast.smi_id),
               district_name = (SELECT name FROM district WHERE district.id = broadcast.district_id),
               district_population = (SELECT population FROM district WHERE district.id = broadcast.district_id)
             """
