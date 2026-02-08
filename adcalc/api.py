@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify
-from .models import Organisation, Broadcast
+from flask import Blueprint, jsonify, request
+from .models import Organisation, Broadcast, db
 from .utils import calculate_cost
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -53,3 +53,29 @@ def api_region_smi(reg_id):
     output['region_cost'] = region_cost  
 
     return jsonify(output)
+
+
+@api_bp.route('/broadcasts/delete', methods=['POST'])
+def api_broadcasts_delete():
+    """API для удаления нескольких трансляций по их ID
+    Ожидает JSON: {"ids": [1, 2, 3, ...]}"""
+    data = request.get_json()
+    if not data or 'ids' not in data:
+        return jsonify({'error': 'Missing ids field'}), 400
+    
+    ids = data.get('ids', [])
+    if not isinstance(ids, list) or not ids:
+        return jsonify({'error': 'ids must be a non-empty list'}), 400
+    
+    deleted_count = 0
+    try:
+        for bid in ids:
+            broadcast = Broadcast.query.get(int(bid))
+            if broadcast:
+                db.session.delete(broadcast)
+                deleted_count += 1
+        db.session.commit()
+        return jsonify({'success': True, 'deleted': deleted_count}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
