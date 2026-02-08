@@ -1,11 +1,24 @@
 from flask import Blueprint, jsonify, request
 from .models import Organisation, Broadcast, db
 from .utils import calculate_cost
+from functools import wraps
+from flask import session, redirect, url_for
+
+
+def login_required(f):
+    """Decorator to require login for a route"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 
 @api_bp.route('/organisations-detailed')
+@login_required
 def api_organisations_detailed():
     """API для получения детальной информации об организациях и их broadcasts
     Используется в интерфейсе выбора организаций"""
@@ -39,6 +52,7 @@ def api_organisations_detailed():
 
 
 @api_bp.route('/region/<int:reg_id>/broadcasts')
+@login_required
 def api_region_smi(reg_id):
     """API для получения JSON вещаний для конкретного региона
     Используется в списке регионов"""
@@ -56,6 +70,7 @@ def api_region_smi(reg_id):
 
 
 @api_bp.route('/broadcasts/delete', methods=['POST'])
+@login_required
 def api_broadcasts_delete():
     """API для удаления нескольких трансляций по их ID
     Ожидает JSON: {"ids": [1, 2, 3, ...]}"""

@@ -2,6 +2,18 @@ from sqlite3 import IntegrityError
 from flask import Blueprint, logging, render_template, request, redirect, url_for
 from .models import db, Organisation, Region, Broadcast
 from .utils import calculate_cost
+from functools import wraps
+from flask import session
+
+
+def login_required(f):
+    """Decorator to require login for a route"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 org_bp = Blueprint('org', __name__, url_prefix='/org')
 
@@ -12,6 +24,7 @@ def inject_functions():
 
 
 @org_bp.route('/list')
+@login_required
 def org_list():
     # Fetch all organizations from the database
     organizations = Organisation.query.all()
@@ -45,6 +58,7 @@ def org_list():
 
 
 @org_bp.route('/<int:id>')
+@login_required
 def org_detail(id):
     # Show details for a specific organization
     org = Organisation.query.get_or_404(id)
@@ -52,6 +66,7 @@ def org_detail(id):
 
 
 @org_bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def org_create():
     # Handle both GET (show form) and POST (submit form) requests
     if request.method == 'POST':
@@ -75,6 +90,7 @@ def org_create():
 
 
 @org_bp.route('/<int:org_id>/update', methods=['GET', 'POST'])
+@login_required
 def org_update(org_id):
     # Handle both GET (show form) and POST (submit form) requests
     org = Organisation.query.get_or_404(org_id)
@@ -96,6 +112,7 @@ def org_update(org_id):
 
 
 @org_bp.route('/<int:org_id>/delete', methods=['POST'])
+@login_required
 def org_delete(org_id):
     try:
         org = Organisation.query.get_or_404(org_id)
@@ -108,6 +125,7 @@ def org_delete(org_id):
 
 
 @org_bp.route('/<int:org_id>/broadcasts')
+@login_required
 def org_broadcasts(org_id):
     org = Organisation.query.get_or_404(org_id)
     # Provide existing distinct names for convenience and region list
@@ -118,6 +136,7 @@ def org_broadcasts(org_id):
 
 
 @org_bp.route('/<int:org_id>/broadcast_create', methods=['POST'])
+@login_required
 def broadcast_create(org_id):
     # Get the organization
     org = Organisation.query.get_or_404(org_id)
@@ -166,6 +185,7 @@ def broadcast_create(org_id):
 
 
 @org_bp.route('/broadcast/<int:bro_id>/update', methods=['POST', 'GET'])
+@login_required
 def broadcast_update(bro_id):
     # Update a broadcast by ID
     broadcast = Broadcast.query.get_or_404(bro_id)
@@ -206,6 +226,7 @@ def broadcast_update(bro_id):
 
 
 @org_bp.route('/broadcast/<int:bro_id>/delete')
+@login_required
 def broadcast_delete(bro_id):
     if request.method == 'GET':
         # Delete a broadcast by ID with get method

@@ -4,6 +4,18 @@ from .utils import calculate_cost
 from werkzeug.utils import secure_filename
 import pandas as pd
 import io
+from functools import wraps
+from flask import session
+
+
+def login_required(f):
+    """Decorator to require login for a route"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 broadcast_bp = Blueprint('broadcast', __name__, url_prefix='/broadcast')
 
@@ -14,6 +26,7 @@ def inject_functions():
 
 
 @broadcast_bp.route('/list')
+@login_required
 def broadcast_list():
     """List all broadcasts with their details"""
     page = request.args.get('page', 1, type=int)
@@ -23,6 +36,7 @@ def broadcast_list():
 
 
 @broadcast_bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def broadcast_create():
     """Create a new broadcast"""
     if request.method == 'POST':
@@ -84,6 +98,7 @@ def broadcast_create():
 
 
 @broadcast_bp.route('/<int:broadcast_id>/update', methods=['GET', 'POST'])
+@login_required
 def broadcast_update(broadcast_id):
     """Update a broadcast by ID"""
     broadcast = Broadcast.query.get_or_404(broadcast_id)
@@ -128,6 +143,7 @@ def broadcast_update(broadcast_id):
 
 
 @broadcast_bp.route('/<int:broadcast_id>/delete', methods=['POST'])
+@login_required
 def broadcast_delete(broadcast_id):
     """Delete a broadcast by ID"""
     broadcast = Broadcast.query.get_or_404(broadcast_id)
@@ -137,6 +153,7 @@ def broadcast_delete(broadcast_id):
 
 
 @broadcast_bp.route('/upload_excel', methods=['POST'])
+@login_required
 def broadcast_upload_excel():
     """Upload broadcasts from an Excel file using pandas"""
     file = request.files.get('excel_file')

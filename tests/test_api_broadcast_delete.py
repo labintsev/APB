@@ -29,7 +29,24 @@ def app():
 @pytest.fixture
 def client(app):
     """Create test client"""
-    return app.test_client()
+    from adcalc.models import User
+    
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', password='testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 
 # -------- Helper Functions -------- #
