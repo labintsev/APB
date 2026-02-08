@@ -51,9 +51,25 @@ def run(drop_source_tables=False):
                     power REAL
                 )
             """))
-            # copy data from old tables
+            # copy data from old tables (join to smi and district to populate embedded columns)
+            # Use LEFT JOIN so missing smi/district entries do not prevent copying
+            conn.execute(text("""
+                INSERT INTO broadcast_new (id, org_id, smi_name, smi_rating, smi_male_proportion,
+                    district_name, district_population, region_id, frequency, power)
+                SELECT b.id, b.org_id,
+                       s.name AS smi_name,
+                       s.rating AS smi_rating,
+                       s.male AS smi_male_proportion,
+                       d.name AS district_name,
+                       d.population AS district_population,
+                       b.region_id,
+                       b.frequency,
+                       b.power
+                FROM broadcast b
+                LEFT JOIN smi s ON b.smi_id = s.id
+                LEFT JOIN district d ON b.district_id = d.id
+            """))
 
-            
             # Rename broadcast table
             conn.execute(text("DROP TABLE broadcast"))
             conn.execute(text("ALTER TABLE broadcast_new RENAME TO broadcast"))
