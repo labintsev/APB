@@ -4,6 +4,7 @@ lxml
 Flask
 flask_sqlalchemy
 gunicorn
+python-dotenv
 # requirements-test.txt
 pytest
 pytest-cov

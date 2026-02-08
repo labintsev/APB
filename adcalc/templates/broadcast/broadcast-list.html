@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Трансляции — список{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>Все трансляции</h2>
+    <div class="d-flex mb-3 gap-2">
+      <a class="btn btn-primary" href="{{ url_for('broadcast.broadcast_create') }}">Создать трансляцию</a>
+      <form method="post" action="{{ url_for('broadcast.broadcast_upload_excel') }}" enctype="multipart/form-data" style="display:inline-block;">
+        <label for="excel-upload" class="btn btn-primary mb-0">Загрузить из Excel</label>
+        <input id="excel-upload" type="file" name="excel_file" accept=".xls,.xlsx" style="display:none" required onchange="this.form.submit()">
+      </form>
+      <a id="bulk-delete-btn" href="#" class="btn btn-danger">Удалить выделенные</a>
+    </div>
+    <!-- Pagination top -->
+    {% if pagination.pages > 1 %}
+    <nav class="d-flex justify-content-center mb-3">
+      <ul class="pagination" style="list-style: none; padding-left: 0; margin: 0;">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('broadcast.broadcast_list', page=pagination.prev_num) }}">« Пред</a>
+        </li>
+        {% endif %}
+        {% for page_num in pagination.iter_pages() %}
+          {% if page_num %}
+            {% if page_num == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('broadcast.broadcast_list', page=page_num) }}">{{ page_num }}</a></li>
+            {% endif %}
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('broadcast.broadcast_list', page=pagination.next_num) }}">След »</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    <div class="table-wrap">
+      <table class="app-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all" aria-label="Выбрать все"></th>
+            <th>Организация</th>
+            <th>СМИ</th>
+            <th>Рейтинг СМИ</th>
+            <th>Район</th>
+            <th>Население</th>
+            <th>Регион (коэф.)</th>
+            <th>Частота</th>
+            <th>Мощность</th>
+            <th>Цена 1с</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in broadcasts %}
+          <tr>
+            <td><input type="checkbox" class="select-row" name="selected_ids" value="{{ b.id }}"></td>
+            <td>{{ b.org.name }}</td>
+            <td><a href="{{ url_for('broadcast.broadcast_update', broadcast_id=b.id) }}" style="text-decoration: none; color: inherit;">{{ b.smi_name or '-' }}</a></td>
+            <td>{{ b.smi_rating or '-' }}</td>
+            <td><a href="{{ url_for('broadcast.broadcast_update', broadcast_id=b.id) }}" style="text-decoration: none; color: inherit;">{{ b.district_name or '-' }}</a></td>
+            <td>{{ b.district_population or '-' }}</td>
+            <td>{{ b.region.rating if b.region else '-' }}</td>
+            <td>{{ b.frequency or '-' }}</td>
+            <td>{{ b.power or '-' }}</td>
+            <td>{{ "%.1f"|format(calculate_cost(b)) }} р.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const selectAllCheckbox = document.getElementById('select-all');
+  const selectRowCheckboxes = document.querySelectorAll('input.select-row[type="checkbox"]');
+  const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+  console.log('Select all checkbox:', selectAllCheckbox);
+  console.log('Bulk delete button:', bulkDeleteBtn);
+  console.log('Row checkboxes:', selectRowCheckboxes);
+  // Select all checkbox handler
+  if(selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function(){
+      selectRowCheckboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+      });
+    });
+  }
+
+  // Update select-all checkbox when individual rows are changed
+  selectRowCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function(){
+      const allChecked = Array.from(selectRowCheckboxes).every(cb => cb.checked);
+      const someChecked = Array.from(selectRowCheckboxes).some(cb => cb.checked);
+      
+      if(selectAllCheckbox) {
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = someChecked && !allChecked;
+      }
+    });
+  });
+
+  // Bulk delete button handler
+  if(bulkDeleteBtn) {
+    bulkDeleteBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      
+      // Get selected IDs
+      const selectedIds = Array.from(selectRowCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value));
+      console.log('Selected IDs for deletion:', selectedIds);
+      // Check if any are selected
+      if(selectedIds.length === 0) {
+        alert('Выберите хотя бы одну трансляцию для удаления');
+        return;
+      }
+      
+      // Confirmation
+      if(!confirm(`Удалить ${selectedIds.length} трансляцию(и)?`)) {
+        return;
+      }
+      
+      // Send API request
+      fetch('/api/broadcasts/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids: selectedIds })
+      })
+      .then(response => {
+        if(!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if(data.success) {
+          alert(`Удалено ${data.deleted} трансляций`);
+          window.location.reload();
+        } else {
+          alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при удалении: ' + error.message);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

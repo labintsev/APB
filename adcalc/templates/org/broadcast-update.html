@@ -10,37 +10,60 @@
     <form method="POST" action="{{ url_for('org.broadcast_update', bro_id=broadcast.id) }}">
 
         <div class="form-group">
-            <label for="smi_id">СМИ:</label>
-            <select class="form-control" id="smi_id" name="smi_id" required>
+            <label for="smi_name">СМИ (название):</label>
+            <select class="form-control" id="smi_name" name="smi_name">
+                <option value="">-- выбрать или ввести --</option>
                 {% for smi in smis %}
-                <option value="{{ smi.id }}" {% if smi.id==broadcast.smi_id %}selected{% endif %}>
-                    {{ smi.name }}
-                </option>
+                <option value="{{ smi }}" {% if smi==broadcast.smi_name %}selected{% endif %}>{{ smi }}</option>
                 {% endfor %}
             </select>
+            <input type="text" class="form-control mt-2" id="smi_name_text" name="smi_name" placeholder="Если новое — введите название" value="{{ broadcast.smi_name or '' }}">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="smi_rating">Рейтинг СМИ (%):</label>
+                <input type="number" class="form-control" id="smi_rating" name="smi_rating" step="0.1" value="{{ broadcast.smi_rating or '' }}">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="smi_male_proportion">Доля мужчин (%):</label>
+                <input type="number" class="form-control" id="smi_male_proportion" name="smi_male_proportion" step="0.1" value="{{ broadcast.smi_male_proportion or '' }}">
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="district_id">Район:</label>
-            <select class="form-control" id="district_id" name="district_id" required>
+            <label for="district_name">Район (название):</label>
+            <select class="form-control" id="district_name" name="district_name">
+                <option value="">-- выбрать или ввести --</option>
                 {% for district in districts %}
-                <option value="{{ district.id }}" {% if district.id==broadcast.district_id %}selected{% endif %}>
-                    {{ district.name }}
-                </option>
+                <option value="{{ district }}" {% if district==broadcast.district_name %}selected{% endif %}>{{ district }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" class="form-control mt-2" id="district_name_text" name="district_name" placeholder="Если новый — введите название" value="{{ broadcast.district_name or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="district_population">Население района (чел.):</label>
+            <input type="number" class="form-control" id="district_population" name="district_population" value="{{ broadcast.district_population or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="region_id">Регион:</label>
+            <select class="form-control" id="region_id" name="region_id" required>
+                {% for region in regions %}
+                <option value="{{ region.id }}" {% if region.id==broadcast.region_id %}selected{% endif %}>{{ region.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div class="form-group">
             <label for="frequency">Частота:</label>
-            <input type="text" class="form-control" id="frequency" name="frequency"
-                value="{{ broadcast.frequency or '' }}">
+            <input type="text" class="form-control" id="frequency" name="frequency" value="{{ broadcast.frequency or '' }}">
         </div>
 
         <div class="form-group">
             <label for="power">Мощность:</label>
-            <input type="number" class="form-control" id="power" name="power" step="0.01"
-                value="{{ broadcast.power or '' }}">
+            <input type="number" class="form-control" id="power" name="power" step="0.01" value="{{ broadcast.power or '' }}">
         </div>
 
         <button type="submit" class="btn btn-primary">Сохранить</button>

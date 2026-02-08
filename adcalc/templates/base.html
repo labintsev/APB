@@ -26,9 +26,19 @@
                     <a class="btn" href="{{ url_for('region.region_coverage') }}">Покрытие</a>
                     <a class="btn" href="{{ url_for('region.region_list') }}">Регионы</a>
                     <a class="btn" href="{{ url_for('org.org_list') }}">Организации</a>
-                    <a class="btn" href="{{ url_for('smi.smi_list') }}">СМИ</a>
-                    <a class="btn" href="{{ url_for('district.district_list') }}">Районы вещания</a>
+                    <a class="btn" href="{{ url_for('broadcast.broadcast_list') }}">СМИ и районы</a>
                 </nav>
+                {% if session.get('username') %}
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                    <span style="color: #666;">{{ session.get('username') }}</span>
+                    <a class="btn" href="{{ url_for('auth.logout') }}" style="background-color: #dc3545; color: white;">Выход</a>
+                </div>
+                {% else %}
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <a class="btn" href="{{ url_for('auth.login') }}">Вход</a>
+                    <a class="btn" href="{{ url_for('auth.register') }}" style="background-color: #28a745; color: white;">Регистрация</a>
+                </div>
+                {% endif %}
             </div>
         </header>
 
@@ -38,6 +48,7 @@
         </main>
 
     </div>
+    {% block scripts %}{% endblock %}
 </body>
 
 </html>

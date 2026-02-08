@@ -1,7 +1,26 @@
-# adcalc/models.py
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    
+    def set_password(self, password):
+        """Hash and set password"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check if provided password matches the hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    def __repr__(self):
+        return f"<User {self.username}>"
 
 
 class Organisation(db.Model):
@@ -18,33 +37,12 @@ class Organisation(db.Model):
         return str(self.name)
 
 
-class Smi(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    rating = db.Column(db.Integer)
-    male = db.Column(db.Float)
-
-    def __repr__(self):
-        return str(self.name)
-
-
 class Region(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     rating = db.Column(db.Float)
 
-    # Relationship with districts
-    districts = db.relationship("District", backref="region", lazy=True)
-
-    def __repr__(self):
-        return str(self.name)
-
-
-class District(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    population = db.Column(db.Integer, nullable=True)
-    region_id = db.Column(db.Integer, db.ForeignKey("region.id"), nullable=False)
+    broadcasts = db.relationship("Broadcast", backref="region", lazy=True)
 
     def __repr__(self):
         return str(self.name)
@@ -58,31 +56,28 @@ class Broadcast(db.Model):
         db.ForeignKey("organisation.id", ondelete="RESTRICT"),
         nullable=False,
     )
-    smi_id = db.Column(db.Integer, db.ForeignKey("smi.id"))
-    district_id = db.Column(
-        db.Integer,
-        db.ForeignKey("district.id"),
-        nullable=False,
-    )
-    region_id = db.Column(
-        db.Integer,
-        db.ForeignKey("region.id"),
-        nullable=False,
-    )
+
+    # Embedded SMI fields (smi table removed)
+    smi_name = db.Column(db.String(200), nullable=True)
+    smi_rating = db.Column(db.Float, nullable=True)
+    smi_male_proportion = db.Column(db.Float, nullable=True)
+
+    # Embedded District fields (district table removed)
+    district_name = db.Column(db.String(200), nullable=True)
+    district_population = db.Column(db.Integer, nullable=True)
+
+    # Region relationship remains
+    region_id = db.Column(db.Integer, db.ForeignKey("region.id"), nullable=False)
+
     frequency = db.Column(db.String(50), nullable=True)
     power = db.Column(db.Float, nullable=True)
 
-    # Relationships – keep passive_deletes so that no SQLAlchemy‑level cascade happens.
     org = db.relationship(
         "Organisation",
         backref=db.backref("broadcasts", passive_deletes=True),
     )
-    smi = db.relationship("Smi", backref="broadcasts")
-    district = db.relationship("District", backref="broadcasts")
-    region = db.relationship("Region", backref="broadcasts")
 
     def __repr__(self):
-        # Safeguard against `smi` being None: fall back to “<unknown>”.
-        smi_name = self.smi.name if self.smi else "<none>"
-        return f"{self.org.name}, {self.district.name}, {smi_name}"
-    
+        smi = self.smi_name or "<none>"
+        district = self.district_name or "<none>"
+        return f"{self.org.name}, {district}, {smi}"

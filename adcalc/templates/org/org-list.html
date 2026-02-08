@@ -13,6 +13,7 @@
       <table class="app-table">
         <thead>
           <tr>
+            <th>ID</th>
             <th>Название</th>
             <th>Количество СМИ</th>
             <th>Количество районов</th>
@@ -24,6 +25,7 @@
         <tbody>
           {% for org in organisations %}
           <tr>
+            <td>{{ org.id }}</td>
             <td><a href=" {{ url_for('org.org_broadcasts', org_id=org.id) }} " class="btn btn-secondary">{{ org.name }} </a>
             </td>
             <td>{{ org.total_smi }}</td>

@@ -1,11 +1,24 @@
-from flask import Blueprint, jsonify
-from .models import Organisation, Broadcast
+from flask import Blueprint, jsonify, request
+from .models import Organisation, Broadcast, db
 from .utils import calculate_cost
+from functools import wraps
+from flask import session, redirect, url_for
+
+
+def login_required(f):
+    """Decorator to require login for a route"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            return jsonify({'error': 'Unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 
 @api_bp.route('/organisations-detailed')
+@login_required
 def api_organisations_detailed():
     """API для получения детальной информации об организациях и их broadcasts
     Используется в интерфейсе выбора организаций"""
@@ -22,9 +35,9 @@ def api_organisations_detailed():
         
         for broadcast in organisation.broadcasts:
             broadcast_cost = calculate_cost(broadcast)
-            smi_name = broadcast.smi.name if broadcast.smi else "<none>"
-            district_name = broadcast.district.name if broadcast.district else "<none>"
-            
+            smi_name = broadcast.smi_name or "<none>"
+            district_name = broadcast.district_name or "<none>"
+
             broadcast_data = {
                 'id': broadcast.id,
                 'smi': smi_name,
@@ -39,6 +52,7 @@ def api_organisations_detailed():
 
 
 @api_bp.route('/region/<int:reg_id>/broadcasts')
+@login_required
 def api_region_smi(reg_id):
     """API для получения JSON вещаний для конкретного региона
     Используется в списке регионов"""
@@ -53,3 +67,30 @@ def api_region_smi(reg_id):
     output['region_cost'] = region_cost  
 
     return jsonify(output)
+
+
+@api_bp.route('/broadcasts/delete', methods=['POST'])
+@login_required
+def api_broadcasts_delete():
+    """API для удаления нескольких трансляций по их ID
+    Ожидает JSON: {"ids": [1, 2, 3, ...]}"""
+    data = request.get_json()
+    if not data or 'ids' not in data:
+        return jsonify({'error': 'Missing ids field'}), 400
+    
+    ids = data.get('ids', [])
+    if not isinstance(ids, list) or not ids:
+        return jsonify({'error': 'ids must be a non-empty list'}), 400
+    
+    deleted_count = 0
+    try:
+        for bid in ids:
+            broadcast = Broadcast.query.get(int(bid))
+            if broadcast:
+                db.session.delete(broadcast)
+                deleted_count += 1
+        db.session.commit()
+        return jsonify({'success': True, 'deleted': deleted_count}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

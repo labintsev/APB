@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Smi, Region, District, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast, User
 from adcalc.utils import calculate_cost
 
 
@@ -20,7 +20,8 @@ def app():
     app = create_app({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "COST_PER_PERSON": 5,            # make cost calculation deterministic
+        "COST_PER_PERSON": 5,            
+        'SECRET_KEY': 'test-secret-key',
     })
 
     with app.app_context():
@@ -32,8 +33,24 @@ def app():
 
 @pytest.fixture
 def client(app):
-    return app.test_client()
-
+    """Create test client"""
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 def _create_region(name="Test Region"):
     """Helper – create a single region."""
@@ -41,22 +58,6 @@ def _create_region(name="Test Region"):
     db.session.add(region)
     db.session.commit()
     return region
-
-
-def _create_district(region, name="Test District", population=1000):
-    """Helper – create a district belonging to a region."""
-    district = District(name=name, population=population, region_id=region.id)
-    db.session.add(district)
-    db.session.commit()
-    return district
-
-
-def _create_smi(name="Test SMI", rating=10, male=0.3):
-    """Helper – create a single SMI."""
-    smi = Smi(name=name, rating=rating, male=male)
-    db.session.add(smi)
-    db.session.commit()
-    return smi
 
 
 def _create_org(name="Test Org"):
@@ -67,13 +68,18 @@ def _create_org(name="Test Org"):
     return org
 
 
-def _create_broadcast(org, smi, district, frequency="10.5", power=0.8):
-    """Helper – create a broadcast for an organisation."""
+def _create_broadcast(org, region, smi_name="Test SMI", smi_rating=10.0, 
+                     smi_male_proportion=0.3, district_name="Test District", 
+                     district_population=1000, frequency="10.5", power=0.8):
+    """Helper – create a broadcast for an organisation with embedded SMI and District fields."""
     broadcast = Broadcast(
         org_id=org.id,
-        smi_id=smi.id,
-        district_id=district.id,
-        region_id=district.region_id,
+        region_id=region.id,
+        smi_name=smi_name,
+        smi_rating=smi_rating,
+        smi_male_proportion=smi_male_proportion,
+        district_name=district_name,
+        district_population=district_population,
         frequency=frequency,
         power=power,
     )
@@ -97,17 +103,14 @@ def test_org_list_with_entries(client):
     """GET /org/list – shows a list that contains real organisations."""
     reg = _create_region()
     org = _create_org("Org‑One")
-    # add one SMI and one broadcast so totals are > 0
-    smi = _create_smi(name="SMI‑A")
-    district = _create_district(region=reg, name="D‑A", population=2000)
-    bc = _create_broadcast(smi=smi, district=district, org=org )
+    # add one broadcast with embedded SMI and district fields
+    bc = _create_broadcast(org, reg, smi_name="SMI‑A", district_name="D‑A", district_population=2000)
     db.session.commit()
 
     rv = client.get("/org/list")
     assert rv.status_code == 200
     assert org.name.encode() in rv.data
-    assert b"1" in rv.data          # total_smi
-    assert b"1" in rv.data          # total_districts
+    assert b"1" in rv.data          # total broadcasts
     assert b"2000" in rv.data       # total_population
     # cost calculation is deterministic (COST_PER_PERSON * population)
     expected_cost = calculate_cost(Broadcast.query.first())
@@ -175,10 +178,8 @@ def test_org_delete_without_broadcasts(client):
 def test_org_delete_with_broadcasts(client):
     """Attempt to delete an organisation that has broadcasts """
     reg = _create_region()
-    dist = _create_district(reg)
-    smi = _create_smi()
     org = _create_org("Org‑With‑Broadcast")
-    _create_broadcast(org, smi, dist)
+    _create_broadcast(org, reg)
     rv = client.post(f"/org/{org.id}/delete", follow_redirects=True)
     assert rv.status_code == 200
     # the view redirects back to the list; the org must still exist
@@ -193,12 +194,14 @@ def test_org_delete_with_broadcasts(client):
 def test_broadcast_create_view(client):
     """POST /org/<org_id>/broadcast_create – add a new broadcast."""
     reg = _create_region()
-    dist = _create_district(reg)
-    smi = _create_smi()
     org = _create_org("Org‑Bcast")
     data = {
-        "smi_id": smi.id,
-        "district_id": dist.id,
+        "smi_name": "Test SMI",
+        "smi_rating": "10.0",
+        "smi_male_proportion": "0.3",
+        "district_name": "Test District",
+        "district_population": "1000",
+        "region_id": str(reg.id),
         "frequency": "9.1",
         "power": "1.5",
     }
@@ -216,12 +219,9 @@ def test_broadcast_create_view(client):
 def test_broadcast_update_view(client):
     """GET + POST – edit an existing broadcast."""
     reg = _create_region()
-    dist1 = _create_district(reg, population=2000)
-    dist2 = _create_district(reg, name="Other District", population=1500)
-    smi1 = _create_smi(name="SMI‑1")
-    smi2 = _create_smi(name="SMI‑2")
     org = _create_org("Org‑Bcast‑Upd")
-    broadcast = _create_broadcast(org, smi1, dist1, frequency="10", power=0.9)
+    broadcast = _create_broadcast(org, reg, smi_name="SMI‑1", district_population=2000, 
+                                 frequency="10", power=0.9)
 
     # GET the form page – it should pre‑populate the current values
     rv = client.get(f"/org/broadcast/{broadcast.id}/update")
@@ -230,8 +230,12 @@ def test_broadcast_update_view(client):
 
     # POST with new data
     post_data = {
-        "smi_id": smi2.id,
-        "district_id": dist2.id,
+        "smi_name": "SMI‑2",
+        "smi_rating": "15.0",
+        "smi_male_proportion": "0.4",
+        "district_name": "Other District",
+        "district_population": "1500",
+        "region_id": str(reg.id),
         "frequency": "11.5",
         "power": "1.2",
     }
@@ -241,8 +245,8 @@ def test_broadcast_update_view(client):
     assert rv.status_code == 200
     # reload from DB
     broadcast = Broadcast.query.get(broadcast.id)
-    assert broadcast.smi_id == smi2.id
-    assert broadcast.district_id == dist2.id
+    assert broadcast.smi_name == post_data["smi_name"]
+    assert broadcast.district_name == post_data["district_name"]
     assert broadcast.frequency == post_data["frequency"]
     assert broadcast.power == float(post_data["power"])
 
@@ -250,10 +254,8 @@ def test_broadcast_update_view(client):
 def test_broadcast_delete_view(client):
     """POST /org/<org_id>/broadcast_delete – removes a broadcast."""
     reg = _create_region()
-    dist = _create_district(reg)
-    smi = _create_smi()
     org = _create_org("Org‑Bcast‑Del")
-    broadcast = _create_broadcast(org, smi, dist)
+    broadcast = _create_broadcast(org, reg)
 
     rv = client.get(f"/org/broadcast/{broadcast.id}/delete", follow_redirects=True)
     assert rv.status_code == 200
@@ -266,10 +268,8 @@ def test_broadcast_delete_view(client):
 def test_api_region_broadcasts(client):
     """GET /api/region/<id>/broadcasts – returns region cost."""
     reg = _create_region()
-    dist = _create_district(reg)
-    smi = _create_smi()
     org = _create_org("Org‑Region")
-    _create_broadcast(org, smi, dist)
+    _create_broadcast(org, reg)
     rv = client.get(f"/api/region/{reg.id}/broadcasts")
     assert rv.status_code == 200
     data = rv.get_json()
