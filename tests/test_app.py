@@ -8,7 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Region, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast, User
 
 
 @pytest.fixture
@@ -19,6 +19,8 @@ def app():
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "COST_PER_PERSON": 5,
+            "SECRET_KEY": "test-secret-key",
+            "EMAIL_WHITELIST": "test@example.com"
         }
     )
 
@@ -82,10 +84,27 @@ def app():
         yield app
 
 
+
 @pytest.fixture
 def client(app):
     """Create test client"""
-    return app.test_client()
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 
 def test_index_page(client):

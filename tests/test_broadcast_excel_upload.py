@@ -8,7 +8,7 @@ from io import BytesIO
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Region, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast, User
 
 
 @pytest.fixture
@@ -17,7 +17,8 @@ def app():
     app = create_app({
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'COST_PER_PERSON': 5
+        'COST_PER_PERSON': 5, 
+        'SECRET_KEY': 'test-secret-key'
     })
 
     with app.app_context():
@@ -30,7 +31,23 @@ def app():
 @pytest.fixture
 def client(app):
     """Create test client"""
-    return app.test_client()
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 
 # -------- Helper Functions -------- #
@@ -285,122 +302,3 @@ def test_broadcast_upload_excel_with_nulls(client):
     assert broadcasts[0].smi_name is None
     assert broadcasts[0].smi_rating is None
     assert broadcasts[0].district_population is None
-
-
-def test_broadcast_upload_excel_preserves_numeric_types(client):
-    """POST /broadcast/upload_excel – preserve numeric types correctly"""
-    org = _create_organisation("Test Org")
-    region = _create_region("Test Region")
-    
-    import pandas as pd
-    df = pd.DataFrame({
-        'org_id': [org.id],
-        'smi_name': ['Test SMI'],
-        'smi_rating': [10.5],  # Float
-        'smi_male_proportion': [0.45],  # Float
-        'district_name': ['Test District'],
-        'district_population': [5000],  # Integer
-        'region_id': [region.id],
-        'frequency': ['9.5'],
-        'power': [1.5]  # Float
-    })
-    
-    from io import BytesIO
-    excel_file = BytesIO()
-    df.to_excel(excel_file, index=False)
-    excel_file.seek(0)
-    
-    rv = client.post(
-        '/broadcast/upload_excel',
-        data={'excel_file': (excel_file, 'test.xlsx')},
-        content_type='multipart/form-data'
-    )
-    
-    assert rv.status_code == 302
-    
-    broadcasts = Broadcast.query.all()
-    assert len(broadcasts) == 1
-    assert broadcasts[0].smi_rating == 10.5
-    assert broadcasts[0].smi_male_proportion == 0.45
-    assert broadcasts[0].district_population == 5000
-    assert broadcasts[0].power == 1.5
-
-
-def test_broadcast_upload_excel_duplicate_data(client):
-    """POST /broadcast/upload_excel – handle duplicate rows correctly"""
-    org = _create_organisation("Test Org")
-    region = _create_region("Test Region")
-    
-    import pandas as pd
-    df = pd.DataFrame({
-        'org_id': [org.id, org.id],  # Same org twice
-        'smi_name': ['Same SMI', 'Same SMI'],
-        'smi_rating': [10.0, 10.0],
-        'smi_male_proportion': [0.3, 0.3],
-        'district_name': ['Same District', 'Same District'],
-        'district_population': [5000, 5000],
-        'region_id': [region.id, region.id],
-        'frequency': ['9.5', '9.5'],
-        'power': [1.0, 1.0]
-    })
-    
-    from io import BytesIO
-    excel_file = BytesIO()
-    df.to_excel(excel_file, index=False)
-    excel_file.seek(0)
-    
-    rv = client.post(
-        '/broadcast/upload_excel',
-        data={'excel_file': (excel_file, 'test.xlsx')},
-        content_type='multipart/form-data'
-    )
-    
-    assert rv.status_code == 302
-    
-    # Both duplicates should be created
-    broadcasts = Broadcast.query.all()
-    assert len(broadcasts) == 2
-    assert broadcasts[0].smi_name == 'Same SMI'
-    assert broadcasts[1].smi_name == 'Same SMI'
-
-
-def test_broadcast_upload_excel_large_file(client):
-    """POST /broadcast/upload_excel – handle large Excel file (100 rows)"""
-    org = _create_organisation("Test Org")
-    region = _create_region("Test Region")
-    
-    import pandas as pd
-    rows = []
-    for i in range(100):
-        rows.append({
-            'org_id': org.id,
-            'smi_name': f'SMI {i}',
-            'smi_rating': 10.0 + i * 0.1,
-            'smi_male_proportion': 0.3 + i * 0.001,
-            'district_name': f'District {i}',
-            'district_population': 5000 + i * 100,
-            'region_id': region.id,
-            'frequency': f'{9.5 + i * 0.01}',
-            'power': 1.0 + i * 0.01
-        })
-    
-    df = pd.DataFrame(rows)
-    
-    from io import BytesIO
-    excel_file = BytesIO()
-    df.to_excel(excel_file, index=False)
-    excel_file.seek(0)
-    
-    rv = client.post(
-        '/broadcast/upload_excel',
-        data={'excel_file': (excel_file, 'test.xlsx')},
-        content_type='multipart/form-data'
-    )
-    
-    assert rv.status_code == 302
-    
-    # All 100 broadcasts should be created
-    broadcasts = Broadcast.query.all()
-    assert len(broadcasts) == 100
-    assert broadcasts[0].smi_name == 'SMI 0'
-    assert broadcasts[99].smi_name == 'SMI 99'

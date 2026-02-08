@@ -7,7 +7,7 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Region, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast, User
 
 
 @pytest.fixture
@@ -16,7 +16,9 @@ def app():
     app = create_app({
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'COST_PER_PERSON': 5
+        'COST_PER_PERSON': 5,
+        'SECRET_KEY': 'test-secret-key',
+        'EMAIL_WHITELIST': 'test@example.com'
     })
 
     with app.app_context():
@@ -29,11 +31,10 @@ def app():
 @pytest.fixture
 def client(app):
     """Create test client"""
-    from adcalc.models import User
-    
     with app.app_context():
         # Create a test user
-        user = User(username='testuser', password='testpass')
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
         db.session.add(user)
         db.session.commit()
     
@@ -285,3 +286,42 @@ def test_api_broadcasts_delete_large_batch(client):
     
     # Verify all were deleted
     assert Broadcast.query.count() == 0
+
+
+# -------- Authentication Tests -------- #
+def test_api_broadcasts_delete_unauthenticated(client):
+    """POST /api/broadcasts/delete – reject unauthenticated requests"""
+    # Create a new client without authentication
+    unauth_client = client.application.test_client()
+    
+    # Try to delete without authentication
+    rv = unauth_client.post(
+        '/api/broadcasts/delete',
+        data=json.dumps({'ids': [1, 2, 3]}),
+        content_type='application/json'
+    )
+    
+    # Should be redirected to login or return 401
+    assert rv.status_code in [302, 401]  # Redirect to login or unauthorized
+
+
+def test_api_broadcasts_delete_authenticated(client):
+    """POST /api/broadcasts/delete – accept authenticated requests"""
+    region = _create_region("Region 1")
+    org = _create_organisation("Org 1")
+    broadcast = _create_broadcast(org, region, smi_name="SMI 1")
+    
+    broadcast_id = broadcast.id
+    
+    # Send DELETE request with authentication (already set up in fixture)
+    rv = client.post(
+        '/api/broadcasts/delete',
+        data=json.dumps({'ids': [broadcast_id]}),
+        content_type='application/json'
+    )
+    
+    # Should succeed
+    assert rv.status_code == 200
+    data = json.loads(rv.data)
+    assert data['success'] is True
+    assert data['deleted'] == 1

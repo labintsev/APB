@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Region, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast, User
 from adcalc.utils import calculate_cost
 
 
@@ -20,7 +20,8 @@ def app():
     app = create_app({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "COST_PER_PERSON": 5,            # make cost calculation deterministic
+        "COST_PER_PERSON": 5,            
+        'SECRET_KEY': 'test-secret-key',
     })
 
     with app.app_context():
@@ -32,8 +33,24 @@ def app():
 
 @pytest.fixture
 def client(app):
-    return app.test_client()
-
+    """Create test client"""
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 def _create_region(name="Test Region"):
     """Helper – create a single region."""

@@ -1,6 +1,26 @@
 # tests/test_views_region.py
 import pytest
-from adcalc.models import db, Region
+from adcalc import create_app
+from adcalc.models import db, Organisation, Region, Broadcast, User
+
+# --------------------------------------------------------------------------- #
+#  Fixtures – create app + database + helper functions
+# --------------------------------------------------------------------------- #
+@pytest.fixture
+def app():
+    """Create a Flask app configured for testing."""
+    app = create_app({
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "COST_PER_PERSON": 5,            
+        'SECRET_KEY': 'test-secret-key',
+    })
+
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 
 def _create_region(name, rating=1.0):
@@ -13,8 +33,24 @@ def _create_region(name, rating=1.0):
 
 @pytest.fixture
 def client(app):
-    """Create a test client."""
-    return app.test_client()
+    """Create test client"""
+    with app.app_context():
+        # Create a test user
+        user = User(username='testuser', email='test@example.com')
+        user.set_password('testpass')
+        db.session.add(user)
+        db.session.commit()
+    
+    test_client = app.test_client()
+    
+    # Authenticate the test client
+    with test_client:
+        test_client.post('/auth/login', data={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+    
+    return test_client
 
 
 def test_region_list_view(client):
