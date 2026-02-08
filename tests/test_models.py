@@ -4,7 +4,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from adcalc.models import db, Organisation, Smi, Region, District, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast
 
 
 def test_organisation_model():
@@ -12,14 +12,6 @@ def test_organisation_model():
     org = Organisation(name="Тестовая организация")
     assert org.name == "Тестовая организация"
     assert str(org) == "Тестовая организация"
-
-
-def test_smi_model():
-    """Test Smi model"""
-    smi = Smi(name="Тестовое СМИ", rating=1.0)
-    assert smi.name == "Тестовое СМИ"
-    assert smi.rating == 1.0
-    assert str(smi) == "Тестовое СМИ"
 
 
 def test_region_model():
@@ -30,21 +22,23 @@ def test_region_model():
     assert str(region) == "Тестовый регион"
 
 
-def test_district_model():
-    """Test District model"""
-    district = District(name="Тестовый район", population=10000)
-    assert district.name == "Тестовый район"
-    assert district.population == 10000
-    assert str(district) == "Тестовый район"
-
-
 def test_broadcast_model():
-    """Test Broadcast model"""
+    """Test Broadcast model with embedded SMI and District fields"""
+    region = Region(name="Тестовый регион", rating=1.0)
+    org = Organisation(name="Тестовая организация")
+    
     broadcast = Broadcast(
-        region=Region(name="Тестовый регион", rating=1.0),
-        district=District(name="Тестовый район", population=10000),
-        smi=Smi(name="Тестовое СМИ", rating=1.0),
-        org=Organisation(name="Тестовая организация")
+        org=org,
+        region=region,
+        smi_name="Тестовое СМИ",
+        smi_rating=1.0,
+        smi_male_proportion=0.3,
+        district_name="Тестовый район",
+        district_population=10000,
+        frequency="10.5",
+        power=0.8
     )
     assert broadcast is not None
     assert str(broadcast) == "Тестовая организация, Тестовый район, Тестовое СМИ"
+    assert broadcast.smi_rating == 1.0
+    assert broadcast.district_population == 10000

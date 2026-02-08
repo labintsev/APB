@@ -138,9 +138,9 @@ def broadcast_create(org_id):
     except ValueError:
         smi_rating = None
     try:
-        smi_male = float(smi_male) if smi_male else None
+        smi_male_proportion = float(smi_male) if smi_male else None
     except ValueError:
-        smi_male = None
+        smi_male_proportion = None
     try:
         district_population = int(district_population) if district_population else None
     except ValueError:
@@ -150,7 +150,7 @@ def broadcast_create(org_id):
         org_id=org.id,
         smi_name=smi_name,
         smi_rating=smi_rating,
-        smi_male=smi_male,
+        smi_male_proportion=smi_male_proportion,
         district_name=district_name,
         district_population=district_population,
         region_id=region_id,
@@ -178,9 +178,9 @@ def broadcast_update(bro_id):
         except ValueError:
             broadcast.smi_rating = None
         try:
-            broadcast.smi_male = float(request.form.get('smi_male')) if request.form.get('smi_male') else None
+            broadcast.smi_male_proportion = float(request.form.get('smi_male_proportion')) if request.form.get('smi_male_proportion') else None
         except ValueError:
-            broadcast.smi_male = None
+            broadcast.smi_male_proportion = None
         broadcast.district_name = request.form.get('district_name')
         try:
             broadcast.district_population = int(request.form.get('district_population')) if request.form.get('district_population') else None

@@ -8,7 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from adcalc import create_app
-from adcalc.models import db, Organisation, Smi, Region, District, Broadcast
+from adcalc.models import db, Organisation, Region, Broadcast
 
 
 @pytest.fixture
@@ -31,47 +31,49 @@ def app():
         db.session.add_all([region1, region2])
         db.session.commit()
 
-        district1 = District(name="Район 1", population=10000, region_id=region1.id)
-        district2 = District(name="Район 2", population=20000, region_id=region2.id)
-        db.session.add_all([district1, district2])
-        db.session.commit()
-
-        smi1 = Smi(name="СМИ 1", rating=1.0)
-        smi2 = Smi(name="СМИ 2", rating=2.0)
-        db.session.add_all([smi1, smi2])
-        db.session.commit()
-
         org1 = Organisation(name="Организация 1")
         org2 = Organisation(name="Организация 2")
         db.session.add_all([org1, org2])
         db.session.commit()
 
-        # Create broadcasts for org1
+        # Create broadcasts for org1 with embedded SMI and district fields
         broadcast1 = Broadcast(
             org_id=org1.id,
-            smi_id=smi1.id,
-            district_id=district1.id,
             region_id=region1.id,
+            smi_name="СМИ 1",
+            smi_rating=1.0,
+            smi_male_proportion=0.3,
+            district_name="Район 1",
+            district_population=10000,
         )
         broadcast2 = Broadcast(
             org_id=org1.id,
-            smi_id=smi2.id,
-            district_id=district1.id,
             region_id=region1.id,
+            smi_name="СМИ 2",
+            smi_rating=2.0,
+            smi_male_proportion=0.4,
+            district_name="Район 1",
+            district_population=10000,
         )
 
         # Create broadcasts for org2
         broadcast3 = Broadcast(
             org_id=org2.id,
-            smi_id=smi1.id,
-            district_id=district2.id,
             region_id=region2.id,
+            smi_name="СМИ 1",
+            smi_rating=1.0,
+            smi_male_proportion=0.3,
+            district_name="Район 2",
+            district_population=20000,
         )
         broadcast4 = Broadcast(
             org_id=org2.id,
-            smi_id=smi2.id,
-            district_id=district2.id,
             region_id=region2.id,
+            smi_name="СМИ 2",
+            smi_rating=2.0,
+            smi_male_proportion=0.4,
+            district_name="Район 2",
+            district_population=20000,
         )
 
         db.session.add_all([broadcast1, broadcast2, broadcast3, broadcast4])

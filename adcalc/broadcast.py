@@ -45,6 +45,10 @@ def broadcast_create():
             district_population = int(district_population) if district_population else None
         except ValueError:
             district_population = None
+        try:
+            power = float(power) if power else None
+        except ValueError:
+            power = None
 
         new_broadcast = Broadcast(
             org_id=org_id,
