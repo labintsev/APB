@@ -72,7 +72,7 @@ def run(drop_source_tables=False):
             UPDATE broadcast SET
               smi_name = (SELECT name FROM smi WHERE smi.id = broadcast.smi_id),
               smi_rating = (SELECT rating FROM smi WHERE smi.id = broadcast.smi_id),
-              smi_male_proportion = (SELECT male_proportion FROM smi WHERE smi.id = broadcast.smi_id),
+              smi_male_proportion = (SELECT male FROM smi WHERE smi.id = broadcast.smi_id),
               district_name = (SELECT name FROM district WHERE district.id = broadcast.district_id),
               district_population = (SELECT population FROM district WHERE district.id = broadcast.district_id)
             """

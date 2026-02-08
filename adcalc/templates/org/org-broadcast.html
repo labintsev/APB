@@ -13,19 +13,48 @@
     <form method="POST" action="{{ url_for('org.broadcast_create', org_id=organisation.id) }}">
 
       <div class="form-group">
-        <label for="smi_id">СМИ:</label>
-        <select class="form-control" id="smi_id" name="smi_id" required>
+        <label for="smi_name">СМИ (название):</label>
+        <select class="form-control" id="smi_name" name="smi_name">
+          <option value="">-- выбрать или ввести новое --</option>
           {% for smi in smis %}
-          <option value="{{ smi.id }}">{{ smi.name }}</option>
+          <option value="{{ smi }}">{{ smi }}</option>
           {% endfor %}
         </select>
+        <input type="text" class="form-control mt-2" id="smi_name_text" name="smi_name" placeholder="Если новое — введите название">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="smi_rating">Рейтинг СМИ (%):</label>
+          <input type="number" class="form-control" id="smi_rating" name="smi_rating" step="0.1">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="smi_male">Доля мужчин (%):</label>
+          <input type="number" class="form-control" id="smi_male" name="smi_male" step="0.1">
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="district_id">Район:</label>
-        <select class="form-control" id="district_id" name="district_id" required>
+        <label for="district_name">Район (название):</label>
+        <select class="form-control" id="district_name" name="district_name">
+          <option value="">-- выбрать или ввести новое --</option>
           {% for district in districts %}
-          <option value="{{ district.id }}">{{ district.name }}</option>
+          <option value="{{ district }}">{{ district }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" class="form-control mt-2" id="district_name_text" name="district_name" placeholder="Если новый — введите название">
+      </div>
+
+      <div class="form-group">
+        <label for="district_population">Население района (чел.):</label>
+        <input type="number" class="form-control" id="district_population" name="district_population">
+      </div>
+
+      <div class="form-group">
+        <label for="region_id">Регион:</label>
+        <select class="form-control" id="region_id" name="region_id" required>
+          {% for region in regions %}
+          <option value="{{ region.id }}">{{ region.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -63,12 +92,12 @@
           {% for broadcast in organisation.broadcasts %}
           <tr>
             <td>
-              <a href="{{ url_for('org.broadcast_update', bro_id=broadcast.id) }}"> {{ broadcast.smi.name }} </a>
+              <a href="{{ url_for('org.broadcast_update', bro_id=broadcast.id) }}"> {{ broadcast.smi_name or '-' }} </a>
             </td>
-            <td>{{ broadcast.smi.rating }}</td>
-            <td>{{ broadcast.district.name }}</td>
-            <td>{{ broadcast.district.population }} т.чел.</td>
-            <td>{{ broadcast.district.region.rating }}</td>
+            <td>{{ broadcast.smi_rating or '-' }}</td>
+            <td>{{ broadcast.district_name or '-' }}</td>
+            <td>{{ broadcast.district_population or '-' }} чел.</td>
+            <td>{{ broadcast.region.rating if broadcast.region else '-' }}</td>
             <td>{{ broadcast.frequency or '-' }} МГц</td>
             <td>{{ broadcast.power or '-' }} кВт</td>
             <td> {{ "%.1f" | format(calculate_cost(broadcast)) }} р.</td>

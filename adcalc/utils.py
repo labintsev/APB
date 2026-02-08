@@ -1,22 +1,23 @@
-from .models import db, Organisation, Smi, Region, District, Broadcast
+from .models import db, Region, Broadcast
 from flask import current_app
 
 
 def calculate_cost(broadcast):
     try:
-        # Get the broadcast details
-        smi = Smi.query.get_or_404(broadcast.smi_id)
-        district = District.query.get_or_404(broadcast.district_id)
-        if not smi or not district or not district.population:
+        # Use embedded fields on Broadcast (smi_rating and district_population)
+        if not broadcast or not broadcast.smi_rating or not broadcast.district_population:
             return 0
-            
-        region = Region.query.get_or_404(district.region_id)
+
+        # Prefer the Region object attached via relationship when available
+        region = getattr(broadcast, 'region', None)
         if not region:
+            region = Region.query.get(broadcast.region_id)
+        if not region or not region.rating:
             return 0
-            
-        cost = (smi.rating / 100) * district.population * region.rating
+
+        cost = (broadcast.smi_rating / 100.0) * broadcast.district_population * region.rating
         return cost
     except Exception as e:
         print(f"Error calculating cost: {e}")
-        return 0  # Return 0 if calculation fails
+        return 0
     

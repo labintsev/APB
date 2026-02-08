@@ -22,9 +22,9 @@ def api_organisations_detailed():
         
         for broadcast in organisation.broadcasts:
             broadcast_cost = calculate_cost(broadcast)
-            smi_name = broadcast.smi.name if broadcast.smi else "<none>"
-            district_name = broadcast.district.name if broadcast.district else "<none>"
-            
+            smi_name = broadcast.smi_name or "<none>"
+            district_name = broadcast.district_name or "<none>"
+
             broadcast_data = {
                 'id': broadcast.id,
                 'smi': smi_name,

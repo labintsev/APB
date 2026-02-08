@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from .models import db, Organisation, Smi, Region, District, Broadcast
+from .models import db, Organisation, Region, Broadcast
 
 region_bp = Blueprint('region', __name__, url_prefix='/region')
 

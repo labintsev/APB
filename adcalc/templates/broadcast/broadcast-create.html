@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Создать трансляцию{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>Создать трансляцию</h2>
+    <form method="POST" action="{{ url_for('broadcast.broadcast_create') }}">
+
+      <div class="form-group">
+        <label for="org_id">Организация</label>
+        <select id="org_id" name="org_id" class="form-control" required>
+          {% for org in organisations %}
+          <option value="{{ org.id }}">{{ org.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="smi_name">СМИ (название)</label>
+        <input type="text" id="smi_name" name="smi_name" class="form-control" placeholder="Название СМИ или выберите из списка">
+        <select class="form-control mt-2" onchange="document.getElementById('smi_name').value=this.value;">
+          <option value="">-- выбрать --</option>
+          {% for s in smis %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="smi_rating">Рейтинг СМИ (%)</label>
+          <input type="number" step="0.1" id="smi_rating" name="smi_rating" class="form-control">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="smi_male_proportion">Доля мужчин (%)</label>
+          <input type="number" step="0.1" id="smi_male_proportion" name="smi_male_proportion" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="district_name">Район (название)</label>
+        <input type="text" id="district_name" name="district_name" class="form-control" placeholder="Название района">
+        <select class="form-control mt-2" onchange="document.getElementById('district_name').value=this.value;">
+          <option value="">-- выбрать --</option>
+          {% for d in districts %}
+          <option value="{{ d }}">{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="district_population">Население района (чел.)</label>
+        <input type="number" id="district_population" name="district_population" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="region_id">Регион</label>
+        <select id="region_id" name="region_id" class="form-control" required>
+          {% for region in regions %}
+          <option value="{{ region.id }}">{{ region.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="frequency">Частота</label>
+        <input type="text" id="frequency" name="frequency" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="power">Мощность</label>
+        <input type="number" step="0.01" id="power" name="power" class="form-control">
+      </div>
+
+      <button class="btn btn-primary" type="submit">Создать</button>
+      <a class="btn btn-secondary" href="{{ url_for('broadcast.broadcast_list') }}">Отмена</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

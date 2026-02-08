@@ -1,9 +1,8 @@
 from flask import Flask, render_template, jsonify
-from .models import db, Organisation, Smi, Region, District, Broadcast
+from .models import db, Organisation, Region, Broadcast
 from .region import region_bp
 from .org import org_bp
-from .district import district_bp
-from .smi import smi_bp
+from .broadcast import broadcast_bp
 from .api import api_bp
 from .utils import calculate_cost
 import logging
@@ -46,7 +45,6 @@ def create_app(test_config=None):
     app.register_blueprint(api_bp)
     app.register_blueprint(region_bp)
     app.register_blueprint(org_bp)
-    app.register_blueprint(district_bp)
-    app.register_blueprint(smi_bp)
+    app.register_blueprint(broadcast_bp)
 
     return app
