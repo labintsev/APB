@@ -48,8 +48,14 @@ pip install -r requirements.txt
 flask --app adcalc run --debug
 ```
 
-###  Запуск на сервере
+###  Запуск приложения
+В среде разработки: 
 
+```sh
+flask --app adcalc --debug run
+```
+
+На сервере:
 ```sh
 gunicorn --bind=0.0.0.0:8000 "adcalc:create_app()" --daemon
 ```
