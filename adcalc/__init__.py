@@ -63,8 +63,6 @@ def create_app(test_config=None):
     @app.route('/')
     def index():
         """Главная страница: отображает калькулятор рекламного бюджета"""
-        if not session.get('user_id'):
-            return redirect(url_for('auth.login'))
         return render_template('index.html')
 
     app.register_blueprint(auth_bp)

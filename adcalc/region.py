@@ -25,7 +25,6 @@ def region_list():
 
 
 @region_bp.route('/coverage')
-@login_required
 def region_coverage():
     """Отображает список регионов с возможностью раскрытия деталей по вещанию СМИ"""
     regions = Region.query.all()

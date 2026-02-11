@@ -18,7 +18,6 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 
 @api_bp.route('/organisations-detailed')
-@login_required
 def api_organisations_detailed():
     """API для получения детальной информации об организациях и их broadcasts
     Используется в интерфейсе выбора организаций"""
@@ -52,10 +51,9 @@ def api_organisations_detailed():
 
 
 @api_bp.route('/region/<int:reg_id>/broadcasts')
-@login_required
 def api_region_smi(reg_id):
     """API для получения JSON вещаний для конкретного региона
-    Используется в списке регионов"""
+    Используется в списке покрытия регионов"""
     output = {}
     if reg_id == 0:
         region_broadcasts = Broadcast.query.all()
