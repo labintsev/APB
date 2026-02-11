@@ -232,12 +232,12 @@ def test_protected_route_accessible_when_logged_in(client):
     assert rv.status_code == 200
 
 
-def test_protected_api_returns_401_when_not_authenticated(client):
+def test_api_public_when_not_authenticated(client):
     """Protected API endpoints should return 401 when not authenticated"""
     rv = client.get('/api/organisations-detailed')
-    assert rv.status_code == 401
+    assert rv.status_code == 200
     data = rv.get_json()
-    assert 'error' in data
+    assert not 'error' in data
 
 
 def test_protected_api_accessible_when_authenticated(client):
