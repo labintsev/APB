@@ -173,6 +173,17 @@ body {
   background: #f9fafb;
 }
 
+.btn-secondary {
+  background: #48af51;
+  color: #fff;
+  border-color: #48af51;
+}
+
+.btn-secondary :hover {
+  background: #255c2a;
+  border-color: #255c2a;
+}
+
 .btn-danger {
   background: #f33;
   color: #fff;

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from .models import db, Organisation, Region, Broadcast
 from .utils import calculate_cost
 from werkzeug.utils import secure_filename
@@ -267,3 +267,46 @@ def broadcast_upload_excel():
         print(f"Exception: {e}")
 
     return redirect(url_for("broadcast.broadcast_list"))
+
+
+@broadcast_bp.route("/download_excel")
+@login_required
+def broadcast_download_excel():
+    """Return an Excel file containing all broadcasts"""
+    broadcasts = Broadcast.query.all()
+    rows = []
+    for b in broadcasts:
+        rows.append({
+            "org_id": b.org_id,
+            "org_name": b.org.name if b.org else "",
+            "region_id": b.region_id,
+            "smi_name": b.smi_name,
+            "smi_rating": b.smi_rating,
+            "smi_male_proportion": b.smi_male_proportion,
+            "district_name": b.district_name,
+            "district_population": b.district_population,
+            "frequency": b.frequency,
+            "power": b.power,
+        })
+    df = pd.DataFrame(rows, columns=[
+        "org_id",
+        "org_name",
+        "region_id",
+        "smi_name",
+        "smi_rating",
+        "smi_male_proportion",
+        "district_name",
+        "district_population",
+        "frequency",
+        "power",
+    ])
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="table")
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="broadcasts.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
