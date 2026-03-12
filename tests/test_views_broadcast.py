@@ -99,7 +99,9 @@ def test_broadcast_list_empty(client):
     """GET /broadcast/list – returns empty list when no broadcasts exist."""
     rv = client.get("/broadcast/list")
     assert rv.status_code == 200
-    assert "Все трансляции" in rv.data.decode("utf-8")
+    html = rv.data.decode("utf-8")
+    assert "Все трансляции" in html
+    assert "Скачать xls" in html
 
 
 def test_broadcast_list_with_broadcasts(client):
@@ -112,8 +114,10 @@ def test_broadcast_list_with_broadcasts(client):
 
     rv = client.get("/broadcast/list")
     assert rv.status_code == 200
-    assert "Все трансляции" in rv.data.decode("utf-8") 
-    assert "СМИ-1" in rv.data.decode("utf-8")
+    html = rv.data.decode("utf-8")
+    assert "Все трансляции" in html 
+    assert "Скачать xls" in html
+    assert "СМИ-1" in html
     assert "1.0" in rv.data.decode("utf-8")  
     assert "Район-1" in rv.data.decode("utf-8")
     assert "10000" in rv.data.decode("utf-8")
