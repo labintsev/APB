@@ -1,5 +1,6 @@
 jupyter
 pandas
+xlrd
 lxml
 Flask
 flask_sqlalchemy
