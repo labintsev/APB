@@ -66,9 +66,12 @@ def test_broadcast_download_excel_with_data(client):
         reg = Region(name='Reg1', rating=1.2)
         db.session.add(reg)
         db.session.commit()
+        org_id = org.id
+        reg_id = reg.id
+        org_name = org.name
         b = Broadcast(
-            org_id=org.id,
-            region_id=reg.id,
+            org_id=org_id,
+            region_id=reg_id,
             smi_name='SMI',
             smi_rating=5.0,
             smi_male_proportion=0.2,
@@ -87,12 +90,12 @@ def test_broadcast_download_excel_with_data(client):
     expected_cols = [
         'org_id', 'org_name', 'region_id', 'smi_name', 'smi_rating',
         'smi_male_proportion', 'district_name', 'district_population',
-        'frequency', 'power'
+        'frequency', 'power', 'price'
     ]
     assert list(df.columns) == expected_cols
     assert len(df) == 1
-    assert df.loc[0, 'org_id'] == org.id
-    assert df.loc[0, 'org_name'] == org.name
-    assert df.loc[0, 'region_id'] == reg.id
+    assert df.loc[0, 'org_id'] == org_id
+    assert df.loc[0, 'org_name'] == org_name
+    assert df.loc[0, 'region_id'] == reg_id
     assert df.loc[0, 'smi_name'] == 'SMI'
     assert df.loc[0, 'district_population'] == 1000

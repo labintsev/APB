@@ -203,11 +203,13 @@ def broadcast_upload_excel():
     filename = secure_filename(file.filename)
     try:
         # Read Excel file into DataFrame
-        df = pd.read_excel(file, sheet_name="table")
-        # check expected columns names and order
-        if df.columns.tolist() != [
+        try:
+            df = pd.read_excel(file, sheet_name="table")
+        except ValueError:
+            file.seek(0)
+            df = pd.read_excel(file)
+        required_columns = {
             "org_id",
-            "org_name",
             "region_id",
             "smi_name",
             "smi_rating",
@@ -216,43 +218,71 @@ def broadcast_upload_excel():
             "district_population",
             "frequency",
             "power",
-        ]:
-            raise ValueError("Некорректные названия столбцов в Excel файле")
-
-        # check null values in all rows
-        if df.isnull().any().any():
+        }
+        if not required_columns.issubset(set(df.columns.tolist())):
             raise ValueError(
-                "Excel файл содержит пустые значения, пожалуйста, заполните все поля"
+                "Некорректные названия столбцов в Excel файле. Ожидаются: org_id, region_id, smi_name, smi_rating, smi_male_proportion, district_name, district_population, frequency, power"
             )
-        # check data types for numeric fields
-        numeric_fields = ["smi_rating", "smi_male_proportion", "district_population", "power"]
-        for field in numeric_fields:
-            if df[field].dtype not in [float, int]:
-                raise ValueError(f"Поле должно содержать только числовые значения: {field}")
-            
+
+        # drop empty rows if any
+        df = df.dropna(how="all")
+
         for _, row in df.iterrows():
-            # Find Organisation
-            org = Organisation.query.filter_by(id=row.get("org_id")).first()
+            org_id = row.get("org_id")
+            region_id = row.get("region_id")
+            frequency = row.get("frequency")
+            if pd.isna(org_id) or pd.isna(region_id) or pd.isna(frequency):
+                raise ValueError("Обязательные поля org_id, region_id и frequency не должны быть пустыми")
+
+            try:
+                org_id = int(org_id)
+            except Exception:
+                raise ValueError(f"org_id должен быть целым числом: {org_id}")
+            try:
+                region_id = int(region_id)
+            except Exception:
+                raise ValueError(f"region_id должен быть целым числом: {region_id}")
+
+            org = Organisation.query.filter_by(id=org_id).first()
             if not org:
-                raise ValueError(f"Не найдена организация с ID {row.get('org_id')}")
-            # Find Region
-            region = Region.query.filter_by(id=row.get("region_id")).first()
-            print(f"Found org: {org}, region: {region}")
+                raise ValueError(f"Не найдена организация с ID {org_id}")
+            region = Region.query.filter_by(id=region_id).first()
             if not region:
-                raise ValueError(f"Не найден регион с ID {row.get('region_id')}")
-            # Create Broadcast
+                raise ValueError(f"Не найден регион с ID {region_id}")
+
+            def to_optional_float(value):
+                if pd.isna(value):
+                    return None
+                try:
+                    return float(value)
+                except Exception:
+                    raise ValueError(f"Поле должно содержать только числовые значения: {value}")
+
+            smi_rating = to_optional_float(row.get("smi_rating"))
+            smi_male_proportion = to_optional_float(row.get("smi_male_proportion"))
+            district_population = None
+            if not pd.isna(row.get("district_population")):
+                try:
+                    district_population = int(row.get("district_population"))
+                except Exception:
+                    raise ValueError(
+                        f"Поле district_population должно быть числовым: {row.get('district_population')}"
+                    )
+            power = to_optional_float(row.get("power"))
+
             broadcast = Broadcast(
                 org_id=org.id,
                 smi_name=row.get("smi_name"),
-                smi_rating=row.get("smi_rating"),
-                smi_male_proportion=row.get("smi_male_proportion"),
+                smi_rating=smi_rating,
+                smi_male_proportion=smi_male_proportion,
                 district_name=row.get("district_name"),
-                district_population=row.get("district_population"),
+                district_population=district_population,
                 region_id=region.id,
-                frequency=row.get("frequency"),
-                power=row.get("power"),
+                frequency=str(row.get("frequency")) if not pd.isna(row.get("frequency")) else None,
+                power=power,
             )
             db.session.add(broadcast)
+
         db.session.commit()
         flash(f"Файл успешно загружен, импортировано {len(df)} записей", "success")
 
@@ -287,6 +317,7 @@ def broadcast_download_excel():
             "district_population": b.district_population,
             "frequency": b.frequency,
             "power": b.power,
+            "price": calculate_cost(b),
         })
     df = pd.DataFrame(rows, columns=[
         "org_id",
@@ -299,6 +330,7 @@ def broadcast_download_excel():
         "district_population",
         "frequency",
         "power",
+        "price",
     ])
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
