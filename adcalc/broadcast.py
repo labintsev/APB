@@ -1,3 +1,6 @@
+import logging
+from logging import log
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from .models import db, Organisation, Region, Broadcast
 from .utils import calculate_cost
@@ -227,12 +230,27 @@ def broadcast_upload_excel():
         # drop empty rows if any
         df = df.dropna(how="all")
 
+        def to_optional_float(value):
+            if pd.isna(value):
+                return None
+            try:
+                return float(value)
+            except Exception:
+                raise ValueError(f"Поле должно содержать только числовые значения: {value}")
+        success_count = 0
         for _, row in df.iterrows():
             org_id = row.get("org_id")
             region_id = row.get("region_id")
             frequency = row.get("frequency")
-            if pd.isna(org_id) or pd.isna(region_id) or pd.isna(frequency):
-                raise ValueError("Обязательные поля org_id, region_id и frequency не должны быть пустыми")
+            if pd.isna(org_id):
+                log(logging.WARNING, "Обязательное поле org_id не должно быть пустым")
+                continue
+            if pd.isna(region_id):
+                log(logging.WARNING, "Обязательное поле region_id не должно быть пустым")
+                continue
+            if pd.isna(frequency):
+                log(logging.WARNING, "Обязательное поле frequency не должно быть пустым")
+                continue
 
             try:
                 org_id = int(org_id)
@@ -250,13 +268,6 @@ def broadcast_upload_excel():
             if not region:
                 raise ValueError(f"Не найден регион с ID {region_id}")
 
-            def to_optional_float(value):
-                if pd.isna(value):
-                    return None
-                try:
-                    return float(value)
-                except Exception:
-                    raise ValueError(f"Поле должно содержать только числовые значения: {value}")
 
             smi_rating = to_optional_float(row.get("smi_rating"))
             smi_male_proportion = to_optional_float(row.get("smi_male_proportion"))
@@ -282,9 +293,10 @@ def broadcast_upload_excel():
                 power=power,
             )
             db.session.add(broadcast)
+            success_count += 1
 
         db.session.commit()
-        flash(f"Файл успешно загружен, импортировано {len(df)} записей", "success")
+        flash(f"Файл успешно загружен, импортировано {success_count} записей", "success")
 
     # catch specific ValueErrors for better user feedback
     except ValueError as e:
