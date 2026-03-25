@@ -97,6 +97,30 @@
     font-weight: bold;
     cursor: pointer;
   }
+
+  .results-toggle {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+    margin-right: 8px;
+    padding: 0;
+    font-size: 12px;
+  }
+
+  .results-broadcast-row {
+    display: none;
+  }
+
+  .results-broadcast-row td {
+    background-color: #f5f5f5;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .results-broadcast-row td:first-child {
+    padding-left: 2.5em;
+  }
 </style>
 
 <div class="container">
@@ -306,6 +330,22 @@ function getSelectedCost() {
   return totalCost;
 }
 
+function toggleResultsBroadcasts(orgId) {
+  const detailRows = document.querySelectorAll(`.results-broadcast-row[data-org-id="${orgId}"]`);
+  const toggle = document.querySelector(`.results-toggle[data-org-id="${orgId}"]`);
+
+  if (!detailRows.length || !toggle) {
+    return;
+  }
+
+  const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+  detailRows.forEach(row => {
+    row.style.display = isExpanded ? 'none' : 'table-row';
+  });
+  toggle.textContent = isExpanded ? '▶' : '▼';
+  toggle.setAttribute('aria-expanded', String(!isExpanded));
+}
+
 document.getElementById('budgetForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
@@ -328,11 +368,13 @@ document.getElementById('budgetForm').addEventListener('submit', function(e) {
   
   organisationsData.forEach(org => {
     let orgCost = 0;
+    const selectedBroadcasts = [];
     
     org.broadcasts.forEach(broadcast => {
       const checkbox = document.querySelector(`.broadcast-checkbox[data-broadcast-id="${broadcast.id}"][data-org-id="${org.id}"]`);
       if (checkbox && checkbox.checked) {
         orgCost += broadcast.cost;
+        selectedBroadcasts.push(broadcast);
       }
     });
     
@@ -341,11 +383,27 @@ document.getElementById('budgetForm').addEventListener('submit', function(e) {
       
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${org.name}</td>
+        <td>
+          <button type="button" class="results-toggle" data-org-id="${org.id}" aria-expanded="false">▶</button>
+          ${org.name}
+        </td>
         <td>${orgCost.toFixed(1)} р.</td>
         <td>${share.toFixed(1)} т.р.</td>
       `;
       resultsBody.appendChild(row);
+
+      selectedBroadcasts.forEach(broadcast => {
+        const broadcastShare = (broadcast.cost / totalCost) * budget;
+        const bRow = document.createElement('tr');
+        bRow.className = 'results-broadcast-row';
+        bRow.dataset.orgId = org.id;
+        bRow.innerHTML = `
+          <td>${broadcast.smi} — ${broadcast.district}</td>
+          <td>${broadcast.cost.toFixed(1)} р.</td>
+          <td>${broadcastShare.toFixed(1)} т.р.</td>
+        `;
+        resultsBody.appendChild(bRow);
+      });
     }
   });
   
@@ -355,6 +413,13 @@ document.getElementById('budgetForm').addEventListener('submit', function(e) {
 // Select all checkbox event listener
 document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
   toggleSelectAll(e.target.checked);
+});
+
+document.getElementById('resultsBody').addEventListener('click', (e) => {
+  const toggle = e.target.closest('.results-toggle');
+  if (toggle) {
+    toggleResultsBroadcasts(toggle.dataset.orgId);
+  }
 });
 
 // Load organisations on page load
